@@ -1,13 +1,24 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>Cytoscape Test</title>
+  <title>Trabalho de Linguagens Formais e Autômatos</title>
   <meta charset="utf-8">
   <link rel="stylesheet" type="text/css" href="assets/css/style.css">
 </head>
 <body>
 <header>
 </header>
+<h1>Trabalho de Linguagens Formais e Autômatos</h1>
+<h2>Fábio da Silva Takaki e Lucas Martins Valladares Ribeiro</h2>
+<h3>Ferramentas</h3>
+<form>
+<input type="radio" name="tool" value="node" checked> Estados<br>
+<input type="radio" name="tool" value="initial"> Estados Inicial<br>
+<input type="radio" name="tool" value="end"> Estado Final<br>
+<input type="radio" name="tool" value="change_label"> Mudar elemento de transição<br>
+<input type="radio" name="tool" value="eraser"> Deletar  
+</form>
+
 
 <div id="cy"></div>
 
@@ -20,26 +31,7 @@
 
     container: $('#cy'), // container to render in
 
-    elements: [ // list of graph elements to start with
-      // { // node a
-      //   data: { id: 'a' }
-      // },
-      // { // node b
-      //   data: { id: 'b' }
-      // },
-      // { // node c
-      //   data: { id: 'c' }
-      // },
-      // { // edge ab
-      //   data: { id: 'ab', source: 'a', target: 'b' }
-      // },
-      // { // edge ab
-      //   data: { id: 'bc', source: 'b', target: 'c' }
-      // },
-      // { // edge ab
-      //   data: { id: 'cb', source: 'c', target: 'b' }
-      // }
-    ],
+    elements: [],
 
     style: [ // the stylesheet for the graph
       {
@@ -72,22 +64,6 @@
 
   });
   //Math.floor((Math.random() * 1000) + 1)
-  var q = 0;
-  $('#cy').on('dblclick', function(event){
-    console.log(event);
-    var elm = $(this);
-    cy.add({
-      group: "nodes",
-      data: { id: "q"+q },
-      position: { 
-        x: (event.pageX - elm.offset().left), 
-        y: (event.pageY - elm.offset().top) 
-      },
-
-    });
-
-    q++;
-  });
 
 
   // the default values of each option are outlined below:
@@ -131,21 +107,121 @@
     complete: function( sourceNode, targetNodes, addedEntities ) {
       // fired when edgehandles is done and entities are added
       var text = prompt('Digite o caractere', "");
-      if(text == "") text = "∆";
+      if(text == "") text = "λ";
+      if(text.length > 1) text = "λ";
       addedEntities.data('label', text);
     },
     stop: function( sourceNode ) {
       // fired when edgehandles interaction is stopped (either complete with added edges or incomplete)
     }
   };
-
   cy.edgehandles( defaults );
 
-  cy.$(':selected').remove();
+  // variavel para inserção de nós identificar id
+  var q = 0;
 
-  cy.on('taphold', function(evt){
-    console.log( 'tap ' + evt.cyTarget.id() );
-    evt.cyTarget.remove();
+  // variavel para identificar se ja existe estado inicial ou não
+  var initial = 0;
+
+  // manipulo a variavel tool para saber qual ferramenta vai ser utilizada abaixo
+  var tool = 0;
+  $(document).ready(function() {
+    $('input[type=radio]').change(function() {
+      if(this.value == 'node'){
+        tool = 0;
+      }
+      if (this.value == 'initial') {
+        tool = 1;
+      }
+      if (this.value == 'end') {
+        tool = 2;
+      }
+      if (this.value == 'change_label') {
+        tool = 3;
+      }
+      else if (this.value == 'eraser') {
+        tool = 20;
+      }
+    });
+  });
+
+  cy.on('tap', function(event){
+    
+    // inserção de nós
+    if(tool == 0){
+      var elm = $(this);
+      cy.add({
+        group: "nodes",
+        data: { id: "q"+q },
+        position: { 
+          x: event.cyPosition.x, 
+          y: event.cyPosition.y
+        },
+
+      });
+      q++;
+    }
+
+    // estados iniciais
+    if(tool == 1){
+      if(event.cyTarget != cy){ // verifico se clicou em um elemento
+        if(event.cyTarget.isNode()){ // verifico se é um node
+          if(event.cyTarget.style().shape == "triangle"){
+            event.cyTarget.style({shape:'ellipse'});
+            initial = 0;
+          }else{
+            if(initial == 0){
+              event.cyTarget.style({shape:'triangle'});
+              initial = 1;
+            }else{
+              alert('Já existe um estado inicial.');
+            }
+          }
+        }
+      }
+    }
+
+    //estados finais
+    if(tool == 2){
+      if(event.cyTarget != cy){ // verifico se clicou em um elemento
+        if(event.cyTarget.isNode()){ // verifico se é um node
+          if(event.cyTarget.style().shape == "triangle"){
+            event.cyTarget.style({shape:'diamond'});
+            initial = 0;
+          }
+          else if(event.cyTarget.style().shape == "diamond"){
+            event.cyTarget.style({shape:'ellipse'});
+          }
+          else{
+            event.cyTarget.style({shape:'diamond'});
+          }
+        }
+      }
+    }    
+
+
+    //muda elemento de transição
+    if(tool == 3){
+      if(event.cyTarget != cy){ // verifico se clicou em um elemento
+        if(event.cyTarget.isEdge()){ // verifico se é um node
+          var text = prompt('Digite o caractere', "");
+          if(text == "") text = "λ";
+          if(text.length > 1) text = "λ";
+          event.cyTarget.data('label', text);
+        }
+      }
+    }
+
+    // deleta elementos
+    if(tool == 20){
+      if(event.cyTarget != cy){
+        console.log( 'tap ' + event.cyTarget.id() );
+        // se for um estado inicial, eu reseto a variavel initial
+        if(event.cyTarget.style().shape == "triangle") initial = 0;
+        event.cyTarget.remove();
+      }
+    }
+
   });
   
 </script>
