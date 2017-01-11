@@ -169,7 +169,20 @@
           if(event.cyTarget.style().shape == "triangle"){
             event.cyTarget.style({shape:'ellipse'});
             initial = 0;
-          }else{
+          }
+          else if(event.cyTarget.style().shape == "star"){
+            event.cyTarget.style({shape:'diamond'});
+            initial = 0;
+          }
+          else if(event.cyTarget.style().shape == "diamond"){
+            if(initial == 0){
+              event.cyTarget.style({shape:'star'});
+              initial = 1;
+            }else{
+              alert('Já existe um estado inicial.');
+            }
+          }
+          else{
             if(initial == 0){
               event.cyTarget.style({shape:'triangle'});
               initial = 1;
@@ -186,8 +199,10 @@
       if(event.cyTarget != cy){ // verifico se clicou em um elemento
         if(event.cyTarget.isNode()){ // verifico se é um node
           if(event.cyTarget.style().shape == "triangle"){
-            event.cyTarget.style({shape:'diamond'});
-            initial = 0;
+            event.cyTarget.style({shape:'star'});
+          }
+          else if(event.cyTarget.style().shape == "star"){
+            event.cyTarget.style({shape:'triangle'});
           }
           else if(event.cyTarget.style().shape == "diamond"){
             event.cyTarget.style({shape:'ellipse'});
