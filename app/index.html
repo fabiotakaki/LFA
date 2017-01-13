@@ -7,21 +7,31 @@
 </head>
 <body>
 <header>
+  <h1>Trabalho de Linguagens Formais e Autômatos</h1>
+  <h2>Prof. Celso Olivette</h2>
+  <h3>Fábio da Silva Takaki e Lucas Martins Valladares Ribeiro</h3>
 </header>
-<h1>Trabalho de Linguagens Formais e Autômatos</h1>
-<h2>Fábio da Silva Takaki e Lucas Martins Valladares Ribeiro</h2>
-<h3>Ferramentas</h3>
-<form>
-<input type="radio" name="tool" value="node" checked> Estados<br>
-<input type="radio" name="tool" value="initial"> Estados Inicial<br>
-<input type="radio" name="tool" value="end"> Estado Final<br>
-<input type="radio" name="tool" value="change_label"> Mudar elemento de transição<br>
-<input type="radio" name="tool" value="eraser"> Deletar  
-</form>
+<div class="container">
+  <div class="col">
+    <h3>Ferramentas</h3>
+    <form>
+    <input type="radio" name="tool" value="node" checked> Estados<br>
+    <input type="radio" name="tool" value="initial"> Estados Inicial<br>
+    <input type="radio" name="tool" value="end"> Estado Final<br>
+    <input type="radio" name="tool" value="change_label"> Mudar elemento de transição<br>
+    <input type="radio" name="tool" value="eraser"> Deletar  
+    </form>
+    <h3>Algoritmos</h3>
+    <h4>Step-by-step</h4>
+    <button id="">Iniciar</button>
+    <button></button>
+  </div>
+  <div class="col">
+    <div id="cy"></div>
+  </div>
+</div>
 
-
-<div id="cy"></div>
-
+<footer>Copyright &copy; 2017 - FCT UNESP :)</footer>
 <script type="text/javascript" src="assets/js/cytoscape/cytoscape.min.js"></script>
 <script type="text/javascript" src="assets/js/cytoscape-edgehandles/cytoscape-edgehandles.js"></script>
 <script type="text/javascript" src="assets/js/jquery-3.1.1.min.js"></script>
@@ -99,6 +109,7 @@
       // for edges between the specified source and target
       // return element object to be passed to cy.add() for edge
       // NB: i indicates edge index in case of edgeType: 'node'
+      //return {data: { id: sourceNode.data('id')+targetNode.data('id')+Math.floor((Math.random() * 1000) + 1), source: sourceNode.data('id'), target: targetNode.data('id')}};
       return {};
     },
     start: function( sourceNode ) {

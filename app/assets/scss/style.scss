@@ -1,6 +1,21 @@
 #cy {
   width: 600px;
-  height: 600px;
+  height: 400px;
   display: block;
   border: 2px solid #333;
+}
+
+.container{
+  display:flex;
+  justify-content: space-between;
+}
+
+header{
+  text-align: center;
+}
+
+footer{
+  text-align: center;
+  color: #333;
+  margin:10px;
 }
