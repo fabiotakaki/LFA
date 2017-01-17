@@ -24,10 +24,10 @@
     </form>
     <h3>Algoritmos</h3>
     <h4>Testar diretamente</h4>
-    String: <input type="text" name="string" id="string_direct" /> <button id="dfs">Simular</button>
+    String: <input type="text" name="string" id="string_direct" /> <button id="direct">Testar diretamente</button>
     <h4>Step-by-step</h4>
-    <button id="">Iniciar</button>
-    <button></button>
+    <button id="step">Iniciar</button>
+    <button id="next">Próximo</button>
   </div>
   <div class="col">
     <div id="cy"></div>
@@ -257,9 +257,19 @@
   });
 
   var visit = function(index, estado, string_text){
-    console.log(estado);
-    console.log(index);
-    console.log(string_text);
+    if(string_text.length == 0){
+        for(var i=0; i<cy.elements().size(); i++){
+        var edge = cy.elements()[i];
+        if(edge.isEdge()){
+          console.log(edge.data('label'));
+          console.log(string_text[index]);
+          if(edge.data('label') == "λ"){
+              return true;
+          }
+        }
+      }
+    }
+
     if(index == string_text.length){
       if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
         return true;
@@ -269,6 +279,8 @@
     for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
       if(edge.isEdge()){
+        console.log(edge.data('label'));
+        console.log(string_text[index]);
         if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
           index++;
           if(visit(index, edge.target(), string_text)){
@@ -281,12 +293,12 @@
     return false;
   }
 
-  $('#dfs').click(function(event) {
+  $('#direct').click(function(event) {
     var nodeRoot;
     // pego o evento inicial
     for(var i=0; i<cy.elements().size(); i++){
       console.log(cy.elements()[i].style('shape'));
-      if(cy.elements()[i].style('shape') == 'triangle'){
+      if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
         nodeRoot = cy.elements()[i];
       }
     }
@@ -296,42 +308,71 @@
     console.log(string_text);
 
     var index=0;
-    console.log(visit(index, nodeRoot, string_text));
+    if(visit(index, nodeRoot, string_text)){
+      alert('String é válida');
+    }else{
+      alert('String NÃO válida');
+    }
 
-    //console.log(nodeRoot.neighborhood());
+  });
 
-    // var index = 0;
-    // var dfs = cy.elements().dfs({
-    //   roots: '#'+nodeRoot,
-    //   visit: function(i, depth, v, e, u){
-    //     if(i != 0){
-    //       console.log(u.id()+'->'+v.id());
-    //       console.log(e.data('label'));
-    //       console.log(string_text[index]);
-    //       if(e.data('label') == string_text[index]){
 
-    //       }
+  var step = function(index, estado, string_text){
 
-    //     }
+    if(string_text.length == 0){
+        for(var i=0; i<cy.elements().size(); i++){
+        var edge = cy.elements()[i];
+        if(edge.isEdge()){
+          console.log(edge.data('label'));
+          console.log(string_text[index]);
+          if(edge.data('label') == "λ"){
+            estado.style('background-color', 'blue');
+            edge.target().style('background-color', 'blue');
+            return true;
+          }
+        }
+      }
+    }
 
-    //     // if(string_text[i] === undefined){
-    //     //   return false;
-    //     // }
+    if(index == string_text.length){
+      if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
+        estado.style('background-color', 'blue');
+        return true;
+      }else{ estado.style('background-color', '#666'); return false; }
+    }
 
-    //     // if(string_text.length == i && v.style('shape') == 'diamond'){
-    //     //   return true;
-    //     // }
+    for(var i=0; i<cy.elements().size(); i++){
+      var edge = cy.elements()[i];
+      if(edge.isEdge()){
+        console.log(edge.data('label'));
+        console.log(string_text[index]);
+        if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
+          index++;
+          if(visit(index, edge.target(), string_text)){
+            estado.style('background-color', 'blue');
+            return true;
+          }
+        }
+      }
+    }
+    estado.style('background-color', '#666');
+    return false;
+  }
 
-    //     v.style('background-color', 'purple');
-    //   },
-    //   directed: true
-    // });
+  $('#step').click(function(event) {
+    var nodeRoot;
+    // pego o evento inicial
+    for(var i=0; i<cy.elements().size(); i++){
+      console.log(cy.elements()[i].style('shape'));
+      if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
+        nodeRoot = cy.elements()[i];
+      }
+    }
 
-    //console.log(dfs.path); // path to found node
-    //console.log(dfs.found); // found node
+    nodeRoot.style('background-color', 'blue');
 
-    // select the path
-    //path.select();
+    var string_text = $('#string_direct').val().split('');
+    step(0, nodeRoot, string_text);
   });
 
   
