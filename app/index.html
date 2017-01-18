@@ -12,7 +12,7 @@
   <h3>Fábio da Silva Takaki e Lucas Martins Valladares Ribeiro</h3>
 </header>
 <div class="container">
-  <div class="col">
+  <div class="col-ferramentas">
     <h3>Ferramentas</h3>
     <button id="help">Ajuda</button>
     <form>
@@ -31,6 +31,12 @@
 
     <h4>Testar diretamente</h4>
     String: <input type="text" name="string" id="string_direct" /> <button id="direct">Testar diretamente</button>
+
+    <h4>Múltiplas Entradas</h4>
+    <button id="add_input">Adicionar entrada</button>
+    <br>
+    <div id="multiple_inputs"></div>
+
     <h4>Step-by-step</h4>
     String: <input type="text" name="string_step" id="string_step" />
     <button id="step">Iniciar</button>
@@ -306,11 +312,15 @@
     var nodeRoot;
     // pego o evento inicial
     for(var i=0; i<cy.elements().size(); i++){
-      console.log(cy.elements()[i].style('shape'));
       if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
         nodeRoot = cy.elements()[i];
       }
     }
+
+    if(nodeRoot === undefined){
+      alert('Estado inicial não definido.');
+    }
+
     for(var i=0; i<cy.elements().size(); i++){
       var element = cy.elements()[i];
       if(element.isNode()){
@@ -379,11 +389,15 @@
     var nodeRoot;
     // pego o evento inicial
     for(var i=0; i<cy.elements().size(); i++){
-      console.log(cy.elements()[i].style('shape'));
       if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
         nodeRoot = cy.elements()[i];
       }
     }
+
+    if(nodeRoot === undefined){
+      alert('Estado inicial não definido.');
+    }
+
     for(var i=0; i<cy.elements().size(); i++){
       var element = cy.elements()[i];
       if(element.isNode()){
@@ -410,11 +424,48 @@
       console.log("Invalido");
       document.getElementById("string_expression").style.border = "2px solid red"; 
     }
-
   }
 
   document.getElementById("expression").addEventListener("keyup", callTester);
   document.getElementById("string_expression").addEventListener("keyup", callTester);
+
+
+  // múltiplas entradas
+  var id_multiple=1;
+  $('#add_input').click(function(event) {
+    $('<br><input type="text" id="multiple_"'+id_multiple+' />').appendTo('#multiple_inputs');
+    id_multiple++;
+
+    $('#multiple_inputs input').each(function(index, el) {
+      $(el).keyup(function() {
+        var nodeRoot;
+        // pego o evento inicial
+        for(var i=0; i<cy.elements().size(); i++){
+          if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
+            nodeRoot = cy.elements()[i];
+          }
+        }
+
+        for(var i=0; i<cy.elements().size(); i++){
+          var element = cy.elements()[i];
+          if(element.isNode()){
+            element.style('background-color', '#666');
+          }
+        }
+
+        // split na string que quero testar
+        var string_text = $(this).val().split('');
+        console.log(string_text);
+
+        var index=0;
+        if(visit(index, nodeRoot, string_text)){
+          $(this).css('border', '2px solid green'); 
+        }else{
+          $(this).css('border', '2px solid red');
+        }
+      });
+    });
+  });
   
 </script>
 </body>

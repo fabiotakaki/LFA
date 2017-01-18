@@ -5,6 +5,12 @@
   border: 2px solid #333;
 }
 
+.col-ferramentas{
+  height: 400px;
+  overflow-y: scroll;
+  width:100%;
+}
+
 .container{
   display:flex;
   justify-content: space-between;
@@ -18,4 +24,8 @@ footer{
   text-align: center;
   color: #333;
   margin:10px;
+}
+
+h5{
+  margin:5px;
 }
