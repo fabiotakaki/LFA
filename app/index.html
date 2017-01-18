@@ -32,6 +32,7 @@
     <h4>Testar diretamente</h4>
     String: <input type="text" name="string" id="string_direct" /> <button id="direct">Testar diretamente</button>
     <h4>Step-by-step</h4>
+    String: <input type="text" name="string_step" id="string_step" />
     <button id="step">Iniciar</button>
     <button id="next">Próximo</button>
   </div>
@@ -392,7 +393,7 @@
 
     nodeRoot.style('background-color', 'blue');
 
-    var string_text = $('#string_direct').val().split('');
+    var string_text = $('#string_step').val().split('');
     step(0, nodeRoot, string_text);
   });
 
