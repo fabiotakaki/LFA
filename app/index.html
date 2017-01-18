@@ -302,6 +302,12 @@
         nodeRoot = cy.elements()[i];
       }
     }
+    for(var i=0; i<cy.elements().size(); i++){
+      var element = cy.elements()[i];
+      if(element.isNode()){
+        element.style('background-color', '#666');
+      }
+    }
 
     // split na string que quero testar
     var string_text = $('#string_direct').val().split('');
@@ -318,45 +324,44 @@
 
 
   var step = function(index, estado, string_text){
+    if(confirm("Deseja ir pro próximo passo ?")){
+        if(string_text.length == 0){
+          for(var i=0; i<cy.elements().size(); i++){
+          var edge = cy.elements()[i];
+          if(edge.isEdge()){
+            if(edge.data('label') == "λ"){
+              estado.style('background-color', 'blue');
+              edge.target().style('background-color', 'blue');
+              return true;
+            }
+          }
+        }
+      }
 
-    if(string_text.length == 0){
-        for(var i=0; i<cy.elements().size(); i++){
+      if(index == string_text.length){
+        if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
+          console.log("pintouFIM");
+          estado.style('background-color', 'blue');
+          return true;
+        }else{ estado.style('background-color', '#666'); return false; }
+      }
+
+      for(var i=0; i<cy.elements().size(); i++){
         var edge = cy.elements()[i];
         if(edge.isEdge()){
-          console.log(edge.data('label'));
-          console.log(string_text[index]);
-          if(edge.data('label') == "λ"){
-            estado.style('background-color', 'blue');
-            edge.target().style('background-color', 'blue');
-            return true;
+          if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
+            index++;
+            if(step(index, edge.target(), string_text)){
+              console.log("pintouMEIO");
+              estado.style('background-color', 'blue');
+              return true;
+            }
           }
         }
       }
+      estado.style('background-color', '#666');
+      return false;
     }
-
-    if(index == string_text.length){
-      if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
-        estado.style('background-color', 'blue');
-        return true;
-      }else{ estado.style('background-color', '#666'); return false; }
-    }
-
-    for(var i=0; i<cy.elements().size(); i++){
-      var edge = cy.elements()[i];
-      if(edge.isEdge()){
-        console.log(edge.data('label'));
-        console.log(string_text[index]);
-        if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
-          index++;
-          if(visit(index, edge.target(), string_text)){
-            estado.style('background-color', 'blue');
-            return true;
-          }
-        }
-      }
-    }
-    estado.style('background-color', '#666');
-    return false;
   }
 
   $('#step').click(function(event) {
@@ -366,6 +371,12 @@
       console.log(cy.elements()[i].style('shape'));
       if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
         nodeRoot = cy.elements()[i];
+      }
+    }
+    for(var i=0; i<cy.elements().size(); i++){
+      var element = cy.elements()[i];
+      if(element.isNode()){
+        element.style('background-color', '#666');
       }
     }
 
