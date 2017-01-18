@@ -274,8 +274,6 @@
         for(var i=0; i<cy.elements().size(); i++){
         var edge = cy.elements()[i];
         if(edge.isEdge()){
-          console.log(edge.data('label'));
-          console.log(string_text[index]);
           if(edge.data('label') == "λ"){
               return true;
           }
@@ -290,8 +288,6 @@
     for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
       if(edge.isEdge()){
-        console.log(edge.data('label'));
-        console.log(string_text[index]);
         if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
           index++;
           if(visit(index, edge.target(), string_text)){
@@ -323,7 +319,6 @@
     }
     // split na string que quero testar
     var string_text = $('#string_direct').val().split('');
-    console.log(string_text);
     var index=0;
     if(visit(index, nodeRoot, string_text)){
       alert('String é válida');
@@ -334,6 +329,22 @@
   // -------------------------
   // STEP-BY-STEP
   // -------------------------
+
+  var array = [];
+
+  var printArray = function(){
+    var print = '';
+    print = array[0].id();
+    for(var i=1; i<array.length; i++){
+      print = print + '->'+array[i].id();
+    }
+    return print;
+  }
+
+  var clearArray = function(){
+    array = [];
+  }
+
   var step = function(index, estado, string_text){
       if(string_text.length == 0){
         for(var i=0; i<cy.elements().size(); i++){
@@ -349,10 +360,8 @@
     }
     if(index == string_text.length){
       if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
-        if(confirm('Finalizando em: '+estado.id())){
           estado.style('background-color', 'blue');
           return true;
-        }else{ return false; }
       }else{ estado.style('background-color', '#666'); return false; }
     }
     for(var i=0; i<cy.elements().size(); i++){
@@ -360,22 +369,23 @@
       if(edge.isEdge()){
         if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
           index++;
-          if(confirm('Passando por: '+edge.target().id())){
-            if(step(index, edge.target(), string_text)){
-              estado.style('background-color', 'blue');
-              return true;
-            }else{
-              index--;
-            }
+          array.push(edge.target());
+          alert(printArray());
+          if(step(index, edge.target(), string_text)){
+            estado.style('background-color', 'blue');
+            return true;
+          }else{
+            index--;
+            array.pop();
+            alert(printArray());
           }
-        }else{
-          return false;
         }
       }
     }
     estado.style('background-color', '#666');
     return false;
   }
+
   $('#step').click(function(event) {
     var nodeRoot;
     // pego o evento inicial
@@ -395,7 +405,11 @@
     }
     nodeRoot.style('background-color', 'blue');
     var string_text = $('#string_step').val().split('');
+
+    array.push(nodeRoot);
+    alert(printArray());
     step(0, nodeRoot, string_text);
+    clearArray();
   });
   // -------------------------
   // expressões regulares
