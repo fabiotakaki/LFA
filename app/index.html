@@ -23,12 +23,6 @@
       <input type="radio" name="tool" value="eraser"> Deletar  
     </form>
     <h3>Algoritmos</h3>
-    <h4>Expressões regulares</h4>
-    <h5>Expressão</h5>
-    <input type="text" name="expression" id="expression" />
-    <h5>String para teste</h5>
-    <input type="text" name="string_expression" id="string_expression" />
-
     <h4>Testar diretamente</h4>
     String: <input type="text" name="string" id="string_direct" /> <button id="direct">Testar diretamente</button>
 
@@ -40,7 +34,12 @@
     <h4>Step-by-step</h4>
     String: <input type="text" name="string_step" id="string_step" />
     <button id="step">Iniciar</button>
-    <button id="next">Próximo</button>
+
+    <h4>Expressões regulares</h4>
+    <h5>Expressão</h5>
+    <input type="text" name="expression" id="expression" />
+    <h5>String para teste</h5>
+    <input type="text" name="string_expression" id="string_expression" />
 
     <h4>Gramática Regular</h4>
     <h5>Símbolos separados por vírgula</h5>
@@ -368,46 +367,48 @@
   // STEP-BY-STEP
   // -------------------------
   var step = function(index, estado, string_text){
-    if(confirm("Deseja ir pro próximo passo ?")){
-        if(string_text.length == 0){
-          for(var i=0; i<cy.elements().size(); i++){
-          var edge = cy.elements()[i];
-          if(edge.isEdge()){
-            if(edge.data('label') == "λ"){
-              estado.style('background-color', 'blue');
-              edge.target().style('background-color', 'blue');
-              return true;
-            }
+      if(string_text.length == 0){
+        for(var i=0; i<cy.elements().size(); i++){
+        var edge = cy.elements()[i];
+        if(edge.isEdge()){
+          if(edge.data('label') == "λ"){
+            estado.style('background-color', 'blue');
+            edge.target().style('background-color', 'blue');
+            return true;
           }
         }
       }
+    }
 
-      if(index == string_text.length){
-        if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
-          console.log("pintouFIM");
+    if(index == string_text.length){
+      if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
+        if(confirm('Finalizando em: '+estado.id())){
           estado.style('background-color', 'blue');
           return true;
-        }else{ estado.style('background-color', '#666'); return false; }
-      }
+        }else{ return false; }
+      }else{ estado.style('background-color', '#666'); return false; }
+    }
 
-      for(var i=0; i<cy.elements().size(); i++){
-        var edge = cy.elements()[i];
-        if(edge.isEdge()){
-          if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
-            index++;
+    for(var i=0; i<cy.elements().size(); i++){
+      var edge = cy.elements()[i];
+      if(edge.isEdge()){
+        if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
+          index++;
+          if(confirm('Passando por: '+edge.target().id())){
             if(step(index, edge.target(), string_text)){
-              console.log("pintouMEIO");
               estado.style('background-color', 'blue');
               return true;
             }else{
               index--;
             }
           }
+        }else{
+          return false;
         }
       }
-      estado.style('background-color', '#666');
-      return false;
     }
+    estado.style('background-color', '#666');
+    return false;
   }
 
   $('#step').click(function(event) {
@@ -498,19 +499,22 @@
   // -------------------------
   // GRAMÁTICA REGULAR
   // -------------------------
-  var id_add_rule = 1;
   $('#add_rule').click(function(event) {
     $('<br><input type="text" />=><input type="text" />').appendTo('#multiple_grammar');
-    var grammar;
-
   });
+  // var grama = {
+  //     S: ['AB', 'BC'],
+  //     A: ['BA', 'a'],
+  //     B: ['CC', 'b'],
+  //     C: ['AB','a']
+  // };
+  // var w = 'baaba'; 
   var grama = {
-      S: ['AB', 'BC'],
-      A: ['BA', 'a'],
-      B: ['CC', 'b'],
-      C: ['AB','a']
+    S: ['CB'],
+    B: ['CB'],
+    C: ['a']
   };
-  var w = 'baaba'; 
+  var w = 'aaa'; 
 
   var encontrarUmTermo = function(litera, gram){
       var resultado = [];
