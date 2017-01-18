@@ -34,12 +34,16 @@
     <h4>Step-by-step</h4>
     String: <input type="text" name="string_step" id="string_step" />
     <button id="step">Iniciar</button>
+<<<<<<< HEAD
+    <div id="path"></div>
+=======
 
     <h4>Expressões regulares</h4>
     <h5>Expressão</h5>
     <input type="text" name="expression" id="expression" />
     <h5>String para teste</h5>
     <input type="text" name="string_expression" id="string_expression" />
+>>>>>>> 740a52a93348cabda3ba7ac9001f0bcc5ea2eea4
 
     <h4>Gramática Regular</h4>
     <h5>Símbolos separados por vírgula</h5>
@@ -366,7 +370,36 @@
   // -------------------------
   // STEP-BY-STEP
   // -------------------------
+
+  var array = [];
+
+  var parray = function(){
+    var print='';
+    print = array[0];
+    for(var i=1; i<array.length; i++){
+      print = print+'->'+array[i];
+    }
+    return print;
+  }
+
+  var cleararray = function(){
+    array = [];
+  }
+
   var step = function(index, estado, string_text){
+<<<<<<< HEAD
+        if(string_text.length == 0){
+          for(var i=0; i<cy.elements().size(); i++){
+          var edge = cy.elements()[i];
+          if(edge.isEdge()){
+            if(edge.data('label') == "λ"){
+              estado.style('background-color', 'blue');
+              edge.target().style('background-color', 'blue');
+              array.push(estado.id());
+              alert(parray());
+              return true;
+            }
+=======
       if(string_text.length == 0){
         for(var i=0; i<cy.elements().size(); i++){
         var edge = cy.elements()[i];
@@ -375,30 +408,48 @@
             estado.style('background-color', 'blue');
             edge.target().style('background-color', 'blue');
             return true;
+>>>>>>> 740a52a93348cabda3ba7ac9001f0bcc5ea2eea4
           }
         }
       }
     }
 
+<<<<<<< HEAD
+      if(index == string_text.length){
+        if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
+=======
     if(index == string_text.length){
       if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
         if(confirm('Finalizando em: '+estado.id())){
+>>>>>>> 740a52a93348cabda3ba7ac9001f0bcc5ea2eea4
           estado.style('background-color', 'blue');
           return true;
         }else{ return false; }
       }else{ estado.style('background-color', '#666'); return false; }
     }
 
+<<<<<<< HEAD
+      for(var i=0; i<cy.elements().size(); i++){
+        var edge = cy.elements()[i];
+        if(edge.isEdge()){
+          if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
+            index++;
+            array.push(edge.target().id());
+            alert(parray());
+=======
     for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
       if(edge.isEdge()){
         if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
           index++;
           if(confirm('Passando por: '+edge.target().id())){
+>>>>>>> 740a52a93348cabda3ba7ac9001f0bcc5ea2eea4
             if(step(index, edge.target(), string_text)){
               estado.style('background-color', 'blue');
               return true;
             }else{
+              array.pop();
+              alert(parray());
               index--;
             }
           }
@@ -406,9 +457,14 @@
           return false;
         }
       }
+<<<<<<< HEAD
+      estado.style('background-color', '#666');
+      return false;
+=======
     }
     estado.style('background-color', '#666');
     return false;
+>>>>>>> 740a52a93348cabda3ba7ac9001f0bcc5ea2eea4
   }
 
   $('#step').click(function(event) {
@@ -432,9 +488,12 @@
     }
 
     nodeRoot.style('background-color', 'blue');
+    array.push(nodeRoot.id());
+    alert(parray());
 
     var string_text = $('#string_step').val().split('');
     step(0, nodeRoot, string_text);
+    cleararray();
   });
 
   // -------------------------
