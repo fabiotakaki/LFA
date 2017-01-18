@@ -41,6 +41,14 @@
     String: <input type="text" name="string_step" id="string_step" />
     <button id="step">Iniciar</button>
     <button id="next">Próximo</button>
+
+    <h4>Gramática Regular</h4>
+    <h5>Símbolos separados por vírgula</h5>
+    <input type="text" placeholder="Ex: S,A,B,C"><br>
+    <div id="multiple_grammar"></div>
+    <button id="add_rule">Adicionar regra</button>
+    <h5>String para teste</h5>
+    <input type="text" id="string_grammar" /><button id="grammar_test">Testar</button>
   </div>
   <div class="col">
     <div id="cy"></div>
@@ -53,9 +61,16 @@
 <script type="text/javascript" src="assets/js/jquery-3.1.1.min.js"></script>
 
 <script type="text/javascript">
+  // -------------------------
+  // AJUDA
+  // -------------------------
   $('#help').click(function(event) {
     alert('Legenda:\n Triângulo: Evento Inicial. \n Losango: Evento Final \n Estrela: Evento Inicial e Final.');
   });
+
+  // -------------------------
+  // Definições CYTOSCAPE
+  // -------------------------
   var cy = cytoscape({
 
     container: $('#cy'), // container to render in
@@ -147,6 +162,10 @@
   };
   cy.edgehandles( defaults );
 
+  
+  // -------------------------
+  // FERRAMENTAS
+  // -------------------------
   // variavel para inserção de nós identificar id
   var q = 0;
 
@@ -269,6 +288,9 @@
 
   });
 
+  // -------------------------
+  // TESTE DIRETO
+  // -------------------------
   var visit = function(index, estado, string_text){
     if(string_text.length == 0){
         for(var i=0; i<cy.elements().size(); i++){
@@ -342,6 +364,9 @@
   });
 
 
+  // -------------------------
+  // STEP-BY-STEP
+  // -------------------------
   var step = function(index, estado, string_text){
     if(confirm("Deseja ir pro próximo passo ?")){
         if(string_text.length == 0){
@@ -411,8 +436,9 @@
     step(0, nodeRoot, string_text);
   });
 
-
+  // -------------------------
   // expressões regulares
+  // -------------------------
   function callTester() {
     var string1 = document.getElementById("string_expression").value;
     var re = new RegExp(document.getElementById("expression").value);
@@ -429,8 +455,9 @@
   document.getElementById("expression").addEventListener("keyup", callTester);
   document.getElementById("string_expression").addEventListener("keyup", callTester);
 
-
+  // -------------------------
   // múltiplas entradas
+  // -------------------------
   var id_multiple=1;
   $('#add_input').click(function(event) {
     $('<br><input type="text" id="multiple_"'+id_multiple+' />').appendTo('#multiple_inputs');
@@ -466,6 +493,87 @@
       });
     });
   });
+
+
+  // -------------------------
+  // GRAMÁTICA REGULAR
+  // -------------------------
+  var id_add_rule = 1;
+  $('#add_rule').click(function(event) {
+    $('<br><input type="text" />=><input type="text" />').appendTo('#multiple_grammar');
+    var grammar;
+
+  });
+  var grama = {
+      S: ['AB', 'BC'],
+      A: ['BA', 'a'],
+      B: ['CC', 'b'],
+      C: ['AB','a']
+  };
+  var w = 'baaba'; 
+
+  var encontrarUmTermo = function(litera, gram){
+      var resultado = [];
+      for (var r in gram){
+        for (var i in gram[r]){
+          if(gram[r][i] === litera){
+              resultado.push(r);
+          }
+        }
+      }
+      return resultado;
+  };
+
+  var encontrarTermo = function(tab1, tab2, gram){
+      var resultado = [];
+      for (var r in gram){
+        for (var i in gram[r]){
+          if(tab1.indexOf(gram[r][i].charAt(0))>=0 && tab2.indexOf(gram[r][i].charAt(1))>=0){
+              resultado.push(r);
+          }
+        }
+      }
+      return resultado;
+  };
+
+  var cyk = function(word,gram){
+    var len = word.length;
+
+    var tab = new Array(len);
+    for (var t = 0; t < len; t++) {
+      tab[t] = new Array(0);
+    }
+
+    for (var z = 0; z<=len-1; z++){
+      tab[0][z] = encontrarUmTermo(w.charAt(z), gram);
+    }
+
+    for (var j=1; j<=len-1; j++){
+      for (var i=0; i<=len-j-1; i++){
+        tab[j][i] = [];
+
+        for (var k=0;k<j;k++){
+          var pier = j-k-1;
+          var drug = i+k+1;
+          tab[j][i] = tab[j][i].concat(encontrarTermo(tab[k][i],tab[pier][drug],gram));
+        }
+      }
+    }
+    for (var m in tab[len-1][0]){
+      if (tab[len-1][0][m] === 'S'){
+        return true;
+      }
+    }
+    return false;
+
+    console.log(resultado)
+    console.log(resultado.indexOf['S']);
+  };
+
+  var test = function(){
+    console.log(cyk(w, grama));
+  };
+  test();
   
 </script>
 </body>
