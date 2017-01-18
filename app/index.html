@@ -24,7 +24,7 @@
     </form>
     <h3>Algoritmos</h3>
     <h4>Testar diretamente</h4>
-    String: <input type="text" name="string" id="string_direct" /> <button id="direct">Testar diretamente</button>
+    String: <input type="text" name="string" id="string_direct" />
 
     <h4>Múltiplas Entradas</h4>
     <button id="add_input">Adicionar entrada</button>
@@ -64,7 +64,14 @@
   // AJUDA
   // -------------------------
   $('#help').click(function(event) {
-    alert('Legenda:\n Triângulo: Evento Inicial. \n Losango: Evento Final \n Estrela: Evento Inicial e Final.');
+    alert(
+        'SOBRE: \n'
+        +'Foi utilizado o plugin Cytoscape para a manipulação dos grafos. Para mais informações acesse o relatório na pasta do projeto. \n\n'
+        +'LEGENDAS:\n' 
+        + "\t• Triângulo: Evento Inicial.\n" 
+        + '\t• Losango: Evento Final\n' 
+        + '\t• Estrela: Evento Inicial e Final.\n\n'
+    );
   });
   // -------------------------
   // Definições CYTOSCAPE
@@ -99,55 +106,42 @@
       rows: 1
     }
   });
-  //Math.floor((Math.random() * 1000) + 1)
-  // the default values of each option are outlined below:
+
   var defaults = {
-    preview: true, // whether to show added edges preview before releasing selection
-    stackOrder: 4, // Controls stack order of edgehandles canvas element by setting it's z-index
-    handleSize: 10, // the size of the edge handle put on nodes
-    handleColor: '#ff0000', // the colour of the handle and the line drawn from it
-    handleLineType: 'ghost', // can be 'ghost' for real edge, 'straight' for a straight line, or 'draw' for a draw-as-you-go line
-    handleLineWidth: 1, // width of handle line in pixels
-    handleIcon: false, // Pass an Image-object to use as icon on handle. Icons are resized according to zoom and centered in handle.
-    handleNodes: 'node', // selector/filter function for whether edges can be made from a given node
-    hoverDelay: 150, // time spend over a target node before it is considered a target selection
-    cxt: false, // whether cxt events trigger edgehandles (useful on touch)
-    enabled: true, // whether to start the extension in the enabled state
-    toggleOffOnLeave: true, // whether an edge is cancelled by leaving a node (true), or whether you need to go over again to cancel (false; allows multiple edges in one pass)
+    preview: true, 
+    stackOrder: 4,
+    handleSize: 12,
+    handleColor: '#ff0000',
+    handleLineType: 'ghost',
+    handleLineWidth: 1,
+    handleIcon: false, 
+    handleNodes: 'node',
+    hoverDelay: 150,
+    cxt: false,
+    enabled: true,
+    toggleOffOnLeave: true,
     edgeType: function( sourceNode, targetNode ) {
-      // can return 'flat' for flat edges between nodes or 'node' for intermediate node between them
-      // returning null/undefined means an edge can't be added between the two nodes
       return 'flat';
     },
     loopAllowed: function( node ) {
-      // for the specified node, return whether edges from itself to itself are allowed
       return true;
     },
-    nodeLoopOffset: -50, // offset for edgeType: 'node' loops
+    nodeLoopOffset: -50,
     nodeParams: function( sourceNode, targetNode ) {
-      // for edges between the specified source and target
-      // return element object to be passed to cy.add() for intermediary node
       return {};
     },
     edgeParams: function( sourceNode, targetNode, i ) {
-      // for edges between the specified source and target
-      // return element object to be passed to cy.add() for edge
-      // NB: i indicates edge index in case of edgeType: 'node'
-      //return {data: { id: sourceNode.data('id')+targetNode.data('id')+Math.floor((Math.random() * 1000) + 1), source: sourceNode.data('id'), target: targetNode.data('id')}};
       return {};
     },
     start: function( sourceNode ) {
-      // fired when edgehandles interaction starts (drag on handle)
     },
     complete: function( sourceNode, targetNodes, addedEntities ) {
-      // fired when edgehandles is done and entities are added
       var text = prompt('Digite o caractere', "");
       if(text == "") text = "λ";
       if(text.length > 1) text = "λ";
       addedEntities.data('label', text);
     },
     stop: function( sourceNode ) {
-      // fired when edgehandles interaction is stopped (either complete with added edges or incomplete)
     }
   };
   cy.edgehandles( defaults );
@@ -300,7 +294,7 @@
     }
     return false;
   }
-  $('#direct').click(function(event) {
+  $('#string_direct').keyup(function(){
     var nodeRoot;
     // pego o evento inicial
     for(var i=0; i<cy.elements().size(); i++){
@@ -321,9 +315,9 @@
     var string_text = $('#string_direct').val().split('');
     var index=0;
     if(visit(index, nodeRoot, string_text)){
-      alert('String é válida');
+      $(this).css('border', '2px solid green'); 
     }else{
-      alert('String NÃO válida');
+      $(this).css('border', '2px solid red'); 
     }
   });
   // -------------------------
@@ -408,7 +402,11 @@
 
     array.push(nodeRoot);
     alert(printArray());
-    step(0, nodeRoot, string_text);
+    if(step(0, nodeRoot, string_text)){
+      $('#string_step').css('border', '2px solid green');
+    }else{
+      $('#string_step').css('border', '2px solid red');
+    }
     clearArray();
   });
   // -------------------------
@@ -466,7 +464,7 @@
   // GRAMÁTICA REGULAR
   // -------------------------
   $('#add_rule').click(function(event) {
-    $('<br><input type="text" />=><input type="text" />').appendTo('#multiple_grammar');
+    $('<br><input type="text" />=><input type="text" value="λ" />').appendTo('#multiple_grammar');
   });
   // var grama = {
   //     S: ['AB', 'BC'],
@@ -475,46 +473,66 @@
   //     C: ['AB','a']
   // };
   // var w = 'baaba'; 
+
+  // GRAMÁTICA REGULAR -> CHOMSKY
   var grama = {
-    S: ['CB'],
-    B: ['CB'],
-    C: ['a']
+    S: ['AB', 'BC'],
+    A: ['BA', 'a'],
+    B: ['CC', 'b'],
+    C: ['AB', 'a']
   };
+
+  // Adiciono S0->X
+  for (var i in grama){
+    for(var j in grama[i]){
+      if(grama[i][j].charAt(0) == grama[i][j].charAt(0).toUpperCase() && grama[i][j].charAt(1) == grama[i][j].charAt(1).toLowerCase()){
+
+      }
+    }
+  }
+
   var w = 'aaa'; 
+
   var encontrarUmTermo = function(litera, gram){
-      var resultado = [];
-      for (var r in gram){
-        for (var i in gram[r]){
-          if(gram[r][i] === litera){
-              resultado.push(r);
-          }
+    var resultado = [];
+    for (var r in gram){
+      for (var i in gram[r]){
+        if(gram[r][i] === litera){
+          resultado.push(r);
         }
       }
-      return resultado;
+    }
+    return resultado;
   };
+
   var encontrarTermo = function(tab1, tab2, gram){
       var resultado = [];
       for (var r in gram){
         for (var i in gram[r]){
           if(tab1.indexOf(gram[r][i].charAt(0))>=0 && tab2.indexOf(gram[r][i].charAt(1))>=0){
-              resultado.push(r);
+            resultado.push(r);
           }
         }
       }
       return resultado;
   };
+
   var cyk = function(word,gram){
     var len = word.length;
+
     var tab = new Array(len);
     for (var t = 0; t < len; t++) {
       tab[t] = new Array(0);
     }
+
     for (var z = 0; z<=len-1; z++){
       tab[0][z] = encontrarUmTermo(w.charAt(z), gram);
     }
+
     for (var j=1; j<=len-1; j++){
       for (var i=0; i<=len-j-1; i++){
         tab[j][i] = [];
+
         for (var k=0;k<j;k++){
           var pier = j-k-1;
           var drug = i+k+1;
@@ -528,9 +546,11 @@
       }
     }
     return false;
+
     console.log(resultado)
     console.log(resultado.indexOf['S']);
   };
+
   var test = function(){
     console.log(cyk(w, grama));
   };
