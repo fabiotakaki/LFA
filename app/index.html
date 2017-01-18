@@ -16,13 +16,19 @@
     <h3>Ferramentas</h3>
     <button id="help">Ajuda</button>
     <form>
-    <input type="radio" name="tool" value="node" checked> Estados<br>
-    <input type="radio" name="tool" value="initial"> Estados Inicial<br>
-    <input type="radio" name="tool" value="end"> Estado Final<br>
-    <input type="radio" name="tool" value="change_label"> Mudar elemento de transição<br>
-    <input type="radio" name="tool" value="eraser"> Deletar  
+      <input type="radio" name="tool" value="node" checked> Estados<br>
+      <input type="radio" name="tool" value="initial"> Estados Inicial<br>
+      <input type="radio" name="tool" value="end"> Estado Final<br>
+      <input type="radio" name="tool" value="change_label"> Mudar elemento de transição<br>
+      <input type="radio" name="tool" value="eraser"> Deletar  
     </form>
     <h3>Algoritmos</h3>
+    <h4>Expressões regulares</h4>
+    <h5>Expressão</h5>
+    <input type="text" name="expression" id="expression" />
+    <h5>String para teste</h5>
+    <input type="text" name="string_expression" id="string_expression" />
+
     <h4>Testar diretamente</h4>
     String: <input type="text" name="string" id="string_direct" /> <button id="direct">Testar diretamente</button>
     <h4>Step-by-step</h4>
@@ -285,6 +291,8 @@
           index++;
           if(visit(index, edge.target(), string_text)){
             return true;
+          }else{
+            index--;
           }
         }
       }
@@ -355,6 +363,8 @@
               console.log("pintouMEIO");
               estado.style('background-color', 'blue');
               return true;
+            }else{
+              index--;
             }
           }
         }
@@ -386,6 +396,24 @@
     step(0, nodeRoot, string_text);
   });
 
+
+  // expressões regulares
+  function callTester() {
+    var string1 = document.getElementById("string_expression").value;
+    var re = new RegExp(document.getElementById("expression").value);
+    
+    if (re.test(string1)) {
+      console.log("Valido");
+      document.getElementById("string_expression").style.border = "2px solid green"; 
+    } else {
+      console.log("Invalido");
+      document.getElementById("string_expression").style.border = "2px solid red"; 
+    }
+
+  }
+
+  document.getElementById("expression").addEventListener("keyup", callTester);
+  document.getElementById("string_expression").addEventListener("keyup", callTester);
   
 </script>
 </body>
