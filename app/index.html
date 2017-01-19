@@ -468,8 +468,7 @@
   var grammar = [];
 
   $('#add_rule').click(function(event) {
-    $('<br><input type="text" name="regra" id="grammar'+contRegras+'" />=><input type="text" value="λ" name="regra_string" id="grammar_string'+contRegras+'" />').appendTo('#multiple_grammar');
-    contRegras++;
+    $('<br><input type="text" name="regra" id="grammar'+contRegras+'" />=><input type="text" value="λ" name="regra_string" />').appendTo('#multiple_grammar');
   });
 
   // -------------------------
@@ -516,13 +515,29 @@
       return false;
   }
 
-  
+  var aux_grammar = '';
   $('#GLUD').click(function(event) {
-    grammar[0] = {nome: 'S', g1: 'a', g2: 'A'};
-    grammar[1] = {nome: 'S', g1: 'b', g2: 'S'};
-    grammar[2] = {nome: 'A', g1: 'c', g2: 'A'};
-    grammar[3] = {nome: 'A', g1: 'c', g2: ''};
-    grammar[4] = {nome: 'S', g1: 'λ', g2: ''};
+    $('#multiple_grammar input').each(function(index, el) {
+        if (index % 2 === 0) {
+          aux_grammar = $(el).val();
+        }
+        else {
+          var aux2 = $(el).val();
+          var g1, g2;
+          if(aux2.length == 1){
+            g1 = aux2.charAt(0);
+            g2 = '';
+          }else{
+            g1 = aux2.charAt(0);
+            g2 = aux2.charAt(1);
+          }
+          grammar.push({
+            nome: aux_grammar,
+            g1: g1,
+            g2: g2
+          });
+        }
+    });
 
     var string_text = $('#string_grammar').val().split('');
     var index = 0;
@@ -582,11 +597,27 @@
 
   $('#GLUE').click(function(event) {
 
-    grammar[0] = {nome: 'S', g1: 'S', g2: 'c'};
-    grammar[1] = {nome: 'S', g1: 'A', g2: 'a'};
-    grammar[2] = {nome: 'A', g1: 'A', g2: 'b'};
-    grammar[3] = {nome: 'A', g1: 'b', g2: ''};
-    grammar[4] = {nome: 'S', g1: 'λ', g2: ''};
+    $('#multiple_grammar input').each(function(index, el) {
+        if (index % 2 === 0) {
+          var aux_grammar = $(el).val();
+        }
+        else {
+          var aux2 = $(el).val();
+          var g1, g2;
+          if(aux2.length == 1){
+            g1 = aux2.charAt(0);
+            g2 = '';
+          }else{
+            g1 = aux2.charAt(0);
+            g2 = aux2.charAt(1);
+          }
+          grammar.push({
+            nome: aux_grammar,
+            g1: g1,
+            g2: g2
+          });
+        }
+    });
 
 
     var string_text = $('#string_grammar').val().split('');
