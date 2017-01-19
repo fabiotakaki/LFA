@@ -42,12 +42,10 @@
     <input type="text" name="string_expression" id="string_expression" />
 
     <h4>Gramática Regular</h4>
-    <h5>Símbolos separados por vírgula</h5>
-    <input type="text" placeholder="Ex: S,A,B,C"><br>
     <div id="multiple_grammar"></div>
     <button id="add_rule">Adicionar regra</button>
     <h5>String para teste</h5>
-    <input type="text" id="string_grammar" /><button id="grammar_test">Testar</button>
+    <input type="text" id="string_grammar" /><button id="GLUD">GLUD</button><button id="GLUE">GLUE</button>
   </div>
   <div class="col">
     <div id="cy"></div>
@@ -320,6 +318,8 @@
       $(this).css('border', '2px solid red'); 
     }
   });
+
+ 
   // -------------------------
   // STEP-BY-STEP
   // -------------------------
@@ -342,42 +342,43 @@
   var step = function(index, estado, string_text){
       if(string_text.length == 0){
         for(var i=0; i<cy.elements().size(); i++){
+          var edge = cy.elements()[i];
+          if(edge.isEdge()){
+            if(edge.data('label') == "λ"){
+              estado.style('background-color', 'blue');
+              edge.target().style('background-color', 'blue');
+              return true;
+            }
+          }
+        }
+      }
+      if(index == string_text.length){
+        if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
+            estado.style('background-color', 'blue');
+            return true;
+        }else{ estado.style('background-color', '#666'); return false; }
+      }
+
+      for(var i=0; i<cy.elements().size(); i++){
         var edge = cy.elements()[i];
         if(edge.isEdge()){
-          if(edge.data('label') == "λ"){
-            estado.style('background-color', 'blue');
-            edge.target().style('background-color', 'blue');
-            return true;
-          }
-        }
-      }
-    }
-    if(index == string_text.length){
-      if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
-          estado.style('background-color', 'blue');
-          return true;
-      }else{ estado.style('background-color', '#666'); return false; }
-    }
-    for(var i=0; i<cy.elements().size(); i++){
-      var edge = cy.elements()[i];
-      if(edge.isEdge()){
-        if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
-          index++;
-          array.push(edge.target());
-          alert(printArray());
-          if(step(index, edge.target(), string_text)){
-            estado.style('background-color', 'blue');
-            return true;
-          }else{
-            index--;
-            array.pop();
+          if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
+            index++;
+            array.push(edge.target());
             alert(printArray());
+            if(step(index, edge.target(), string_text)){
+              estado.style('background-color', 'blue');
+              return true;
+            }else{
+              index--;
+              array.pop();
+              alert(printArray());
+            }
           }
         }
       }
-    }
-    estado.style('background-color', '#666');
-    return false;
+      estado.style('background-color', '#666');
+      return false;
   }
 
   $('#step').click(function(event) {
@@ -424,6 +425,7 @@
       document.getElementById("string_expression").style.border = "2px solid red"; 
     }
   }
+
   document.getElementById("expression").addEventListener("keyup", callTester);
   document.getElementById("string_expression").addEventListener("keyup", callTester);
   // -------------------------
@@ -450,7 +452,6 @@
         }
         // split na string que quero testar
         var string_text = $(this).val().split('');
-        console.log(string_text);
         var index=0;
         if(visit(index, nodeRoot, string_text)){
           $(this).css('border', '2px solid green'); 
@@ -463,98 +464,139 @@
   // -------------------------
   // GRAMÁTICA REGULAR
   // -------------------------
+  var contRegras=0;
+  var grammar = [];
+
   $('#add_rule').click(function(event) {
-    $('<br><input type="text" />=><input type="text" value="λ" />').appendTo('#multiple_grammar');
+    $('<br><input type="text" name="regra" id="grammar'+contRegras+'" />=><input type="text" value="λ" name="regra_string" id="grammar_string'+contRegras+'" />').appendTo('#multiple_grammar');
+    contRegras++;
   });
-  // var grama = {
-  //     S: ['AB', 'BC'],
-  //     A: ['BA', 'a'],
-  //     B: ['CC', 'b'],
-  //     C: ['AB','a']
-  // };
-  // var w = 'baaba'; 
 
-  // GRAMÁTICA REGULAR -> CHOMSKY
-  var grama = {
-    S: ['AB', 'BC'],
-    A: ['BA', 'a'],
-    B: ['CC', 'b'],
-    C: ['AB', 'a']
-  };
+  // -------------------------
+  // GRAMÁTICA REGULAR LINEAR UNITARIA A DIREITA
+  // -------------------------
 
-  // Adiciono S0->X
-  for (var i in grama){
-    for(var j in grama[i]){
-      if(grama[i][j].charAt(0) == grama[i][j].charAt(0).toUpperCase() && grama[i][j].charAt(1) == grama[i][j].charAt(1).toLowerCase()){
-
+  var GLUD = function(index, regra, string_text){
+    if(string_text.length == 0 || string_text[0] == "λ"){
+          for(var i=0; i<grammar.length; i++){
+            if(grammar[i].nome == regra){
+              if(grammar[i].g1 == "λ"){
+                  return true;
+              }
+            }
+          }
+        return false;
       }
-    }
-  }
 
-  var w = 'aaa'; 
-
-  var encontrarUmTermo = function(litera, gram){
-    var resultado = [];
-    for (var r in gram){
-      for (var i in gram[r]){
-        if(gram[r][i] === litera){
-          resultado.push(r);
+      if(index == string_text.length){
+        for(var i=0; i<grammar.length; i++){
+          if(grammar[i].nome == regra){
+            if(grammar[i].g1 == "λ" || grammar[i].g1 == string_text[index-1]){
+              return true;
+            }
+          }
         }
+        return false;
       }
-    }
-    return resultado;
-  };
 
-  var encontrarTermo = function(tab1, tab2, gram){
-      var resultado = [];
-      for (var r in gram){
-        for (var i in gram[r]){
-          if(tab1.indexOf(gram[r][i].charAt(0))>=0 && tab2.indexOf(gram[r][i].charAt(1))>=0){
-            resultado.push(r);
+      for(var i=0; i<grammar.length; i++){
+        if(grammar[i].nome == regra){
+          if(grammar[i].g1 == string_text[index]){
+            index++;
+            if(grammar[i].g2 != ''){
+              if(GLUD(index, grammar[i].g2, string_text)){
+                return true;
+              }
+            }else{
+                index--;
+            }
           }
         }
       }
-      return resultado;
-  };
+      return false;
+  }
 
-  var cyk = function(word,gram){
-    var len = word.length;
+  
+  $('#GLUD').click(function(event) {
+    grammar[0] = {nome: 'S', g1: 'a', g2: 'A'};
+    grammar[1] = {nome: 'S', g1: 'b', g2: 'S'};
+    grammar[2] = {nome: 'A', g1: 'c', g2: 'A'};
+    grammar[3] = {nome: 'A', g1: 'c', g2: ''};
+    grammar[4] = {nome: 'S', g1: 'λ', g2: ''};
 
-    var tab = new Array(len);
-    for (var t = 0; t < len; t++) {
-      tab[t] = new Array(0);
+    var string_text = $('#string_grammar').val().split('');
+    var index = 0;
+    if(GLUD(index, grammar[0].nome, string_text)){
+      $('#string_grammar').css('border', '2px solid green'); 
+    }else{
+      $('#string_grammar').css('border', '2px solid red'); 
     }
+  });
 
-    for (var z = 0; z<=len-1; z++){
-      tab[0][z] = encontrarUmTermo(w.charAt(z), gram);
-    }
 
-    for (var j=1; j<=len-1; j++){
-      for (var i=0; i<=len-j-1; i++){
-        tab[j][i] = [];
+  // -------------------------
+  // GRAMÁTICA REGULAR LINEAR UNITARIA A ESQUERDA
+  // -------------------------
 
-        for (var k=0;k<j;k++){
-          var pier = j-k-1;
-          var drug = i+k+1;
-          tab[j][i] = tab[j][i].concat(encontrarTermo(tab[k][i],tab[pier][drug],gram));
+  var GLUE = function(index, regra, string_text){
+    if(string_text.length == 0 || string_text[0] == "λ"){
+          for(var i=0; i<grammar.length; i++){
+            if(grammar[i].nome == regra){
+              if(grammar[i].g1 == "λ"){
+                  return true;
+              }
+            }
+          }
+        return false;
+      }
+
+      if(index == -1){
+        for(var i=0; i<grammar.length; i++){
+          if(grammar[i].nome == regra){
+            if(grammar[i].g1 == "λ" || grammar[i].g1 == string_text[index+1]){
+              return true;
+            }
+          }
+        }
+
+        return false;
+      }
+
+      for(var i=0; i<grammar.length; i++){
+        if(grammar[i].nome == regra){
+          if(grammar[i].g2 == string_text[index]){
+            index--;
+            if(grammar[i].g1 != ''){
+              if(GLUE(index, grammar[i].g1, string_text)){
+                return true;
+              }
+            }else{
+                index++;
+            }
+          }
         }
       }
-    }
-    for (var m in tab[len-1][0]){
-      if (tab[len-1][0][m] === 'S'){
-        return true;
-      }
-    }
-    return false;
+      return false;
+  }
 
-    console.log(resultado)
-    console.log(resultado.indexOf['S']);
-  };
 
-  var test = function(){
-    console.log(cyk(w, grama));
-  };
-  test();
+  $('#GLUE').click(function(event) {
+
+    grammar[0] = {nome: 'S', g1: 'S', g2: 'c'};
+    grammar[1] = {nome: 'S', g1: 'A', g2: 'a'};
+    grammar[2] = {nome: 'A', g1: 'A', g2: 'b'};
+    grammar[3] = {nome: 'A', g1: 'b', g2: ''};
+    grammar[4] = {nome: 'S', g1: 'λ', g2: ''};
+
+
+    var string_text = $('#string_grammar').val().split('');
+    var index = string_text.length - 1;
+    if(GLUE(index, grammar[0].nome, string_text)){
+      $('#string_grammar').css('border', '2px solid green'); 
+    }else{
+      $('#string_grammar').css('border', '2px solid red'); 
+    }
+  });
   
 </script>
 </body>
