@@ -271,7 +271,7 @@
                 return false;
               }
             }
-          }else if(edge.data('label') == string_text[index]){
+          }else if(edge.data('edge_in') == string_text[index]){
             saida = saida+edge.data('edge_out');
             index++;
             if(mealy(index, edge.target(), string_text)){
