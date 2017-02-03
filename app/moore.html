@@ -29,6 +29,10 @@
       <input type="radio" name="tool" value="change_label"> Mudar elemento de transição<br>
       <input type="radio" name="tool" value="eraser"> Deletar  
     </form>
+    <h4>Múltiplas Entradas</h4>
+    <button id="add_input">Adicionar entrada</button>
+    <br>
+    <div id="multiple_inputs"></div>
   </div>
   <div class="col">
     <div id="cy"></div>
@@ -170,7 +174,7 @@
       cy.add({
         group: "nodes",
         data: { id: "q"+q, node_out: text },
-        style: { label: 'q'+q+'\n-\n'+text },
+        style: { label: 'q'+q+'\n----\n'+text },
         position: { 
           x: event.cyPosition.x, 
           y: event.cyPosition.y
@@ -229,6 +233,64 @@
       }
     }
   });
+
+  //moore
+  var saida = '';
+  var clear_saida = function(){
+    saida = '';
+  }
+
+  var moore = function(index, estado, string_text){
+    saida = saida+estado.data('node_out');
+
+
+    if(index == string_text.length){
+      return true;
+    }
+
+    for(var i=0; i<cy.elements().size(); i++){
+      var edge = cy.elements()[i];
+      if(edge.isEdge()){
+        if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
+          index++;
+          if(moore(index, edge.target(), string_text)){
+            return true;
+          }else{
+            return false;
+          }
+        }
+      }
+    }
+    return false;
+  }
+  
+  //Multiplas entradas
+  var id_multiple=1;
+  $('#add_input').click(function(event) {
+    $('<br><input type="text" class="local" id="multiple_'+id_multiple+'" /><button id="'+id_multiple+'" class="botao">Simular</button>').appendTo('#multiple_inputs');
+    id_multiple++;
+  });
+
+  $('#multiple_inputs').on('click', '.botao', function(event){
+    var nodeRoot;
+      for(var i=0; i<cy.elements().size(); i++){
+          if(cy.elements()[i].style('shape') == 'triangle'){
+            nodeRoot = cy.elements()[i];
+          }
+        }
+        // split na string que quero testar
+        var string_text = $('#multiple_'+this.id).val().split('');
+        var index=0;
+        if(moore(index, nodeRoot, string_text)){
+          $('#multiple_'+this.id).css('border', '2px solid green');
+          alert('A entrada é válida e a saída é:\n'+saida); 
+        }else{
+          $('#multiple_'+this.id).css('border', '2px solid red');
+          alert('A entrada não é válida e a saída é:\n'+saida); 
+        }
+        clear_saida();
+  });
+
 </script>
 </body>
 </html>
