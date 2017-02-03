@@ -127,8 +127,7 @@
     },
     complete: function( sourceNode, targetNodes, addedEntities ) {
       var text = prompt('Digite o caractere', "");
-      if(text == "") text = "λ";
-      if(text.length > 1) text = "λ";
+      if(text == "" || text == null) text = "λ";
       addedEntities.data('label', text);
     },
     stop: function( sourceNode ) {
@@ -169,8 +168,8 @@
     // inserção de nós
     if(tool == 0){
       var elm = $(this);
-      var text = prompt('Digite a saída', "");
-      if(text == "") text = "λ";
+      var text = prompt('Digite a saída do estado', "");
+      if(text == "" || text == null) text = "λ";
       cy.add({
         group: "nodes",
         data: { id: "q"+q, node_out: text },
@@ -205,8 +204,8 @@
     if(tool == 2){
       if(event.cyTarget != cy){ // verifico se clicou em um elemento
         if(event.cyTarget.isNode()){ // verifico se é um node
-          var text = prompt('Digite o caractere', "");
-          if(text == "") text = "λ";
+          var text = prompt('Digite a nova saída do estado', "");
+          if(text == "" || text == null) text = "λ";
           event.cyTarget.style('label', event.cyTarget.id()+'\n-\n'+text);
           event.cyTarget.data('node_out', text);
         }
@@ -216,9 +215,8 @@
     if(tool == 3){
       if(event.cyTarget != cy){ // verifico se clicou em um elemento
         if(event.cyTarget.isEdge()){ // verifico se é um node
-          var text = prompt('Digite o caractere', "");
-          if(text == "") text = "λ";
-          if(text.length > 1) text = "λ";
+          var text = prompt('Digite o novo elemento de transição', "");
+          if(text == "" || text == null) text = "λ";
           event.cyTarget.data('label', text);
         }
       }
@@ -251,12 +249,32 @@
     for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
       if(edge.isEdge()){
-        if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
-          index++;
-          if(moore(index, edge.target(), string_text)){
-            return true;
-          }else{
-            return false;
+        if(edge.source().id() == estado.id()){
+          if(edge.data('label').length > 1){
+            var dataText = '';
+            //cria string para comparação com a aresta
+            for(var i=0; i<edge.data('label').length; i++){
+              if(index == string_text.length) return false;
+              dataText = dataText + string_text[index];
+              index++;
+            }
+            console.log(edge.data('label'));
+            console.log(dataText);
+
+            if(dataText.localeCompare(edge.data('label')) == 0){
+              if(moore(index, edge.target(), string_text)){
+                return true;
+              }else{
+                return false;
+              }
+            }
+          }else if(edge.data('label') == string_text[index]){
+            index++;
+            if(moore(index, edge.target(), string_text)){
+              return true;
+            }else{
+              return false;
+            }
           }
         }
       }

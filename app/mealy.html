@@ -127,13 +127,12 @@
     },
     complete: function( sourceNode, targetNodes, addedEntities ) {
       var label = '';
-      var text = prompt('Digite o caractere', "");
-      if(text == "") text = "λ";
-      if(text.length > 1) text = "λ";
+      var text = prompt('Digite o elemento de transição', "");
+      if(text == "" || text == null) text = "λ";
       addedEntities.data('edge_in', text);
       label = text;
-      text = prompt('Digite o caractere', "");
-      if(text == "") text = "λ";
+      text = prompt('Digite o elemento de saída', "");
+      if(text == "" || text == null) text = "λ";
       addedEntities.data('edge_out', text);
       label = label +';'+text;
       addedEntities.data('label', label);
@@ -205,14 +204,14 @@
         }
       }
     }
-    //muda saida do nó
+    //muda saida da transição
     if(tool == 2){
       if(event.cyTarget != cy){ // verifico se clicou em um elemento
-        if(event.cyTarget.isNode()){ // verifico se é um node
-          var text = prompt('Digite o caractere', "");
-          if(text == "") text = "λ";
-          event.cyTarget.style('label', event.cyTarget.id()+'\n-\n'+text);
-          event.cyTarget.data('node_out', text);
+        if(event.cyTarget.isEdge()){ // verifico se é um node
+          var text = prompt('Digite a nova saída da transição', "");
+          if(text == "" || text == null) text = "λ";
+          event.cyTarget.data('edge_out', text);
+          event.cyTarget.data('label', event.cyTarget.data('edge_in')+';'+text);
         }
       }
     }
@@ -220,17 +219,16 @@
     if(tool == 3){
       if(event.cyTarget != cy){ // verifico se clicou em um elemento
         if(event.cyTarget.isEdge()){ // verifico se é um node
-          var text = prompt('Digite o caractere', "");
-          if(text == "") text = "λ";
-          if(text.length > 1) text = "λ";
-          event.cyTarget.data('label', text);
+          var text = prompt('Digite o novo elemento de transição', "");
+          if(text == "" || text == null) text = "λ";
+          event.cyTarget.data('edge_in', text);
+          event.cyTarget.data('label', text+';'+event.cyTarget.data('edge_out'));
         }
       }
     }
     // deleta elementos
     if(tool == 20){
       if(event.cyTarget != cy){
-        console.log( 'tap ' + event.cyTarget.id() );
         // se for um estado inicial, eu reseto a variavel initial
         if(event.cyTarget.style().shape == "triangle") initial = 0;
         event.cyTarget.remove();
@@ -246,12 +244,48 @@
 
   var mealy = function(index, estado, string_text){
 
-
     if(index == string_text.length){
       return true;
     }
 
     for(var i=0; i<cy.elements().size(); i++){
+      var edge = cy.elements()[i];
+      if(edge.isEdge()){
+        if(edge.source().id() == estado.id()){
+          if(edge.data('edge_in').length > 1){
+            var dataText = '';
+            //cria string para comparação com a aresta
+            for(var i=0; i<edge.data('edge_in').length; i++){
+              if(index == string_text.length) return false;
+              dataText = dataText + string_text[index];
+              index++;
+            }
+            console.log(edge.data('edge_in'));
+            console.log(dataText);
+            
+            if(dataText.localeCompare(edge.data('edge_in')) == 0){
+              saida = saida+edge.data('edge_out');
+              if(mealy(index, edge.target(), string_text)){
+                return true;
+              }else{
+                return false;
+              }
+            }
+          }else if(edge.data('label') == string_text[index]){
+            saida = saida+edge.data('edge_out');
+            index++;
+            if(mealy(index, edge.target(), string_text)){
+              return true;
+            }else{
+              return false;
+            }
+          }
+        }
+      }
+    }
+    return false;
+
+    /*for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
       if(edge.isEdge()){
         if(edge.source().id() == estado.id() && edge.data('edge_in') == string_text[index]){
@@ -266,6 +300,7 @@
       }
     }
     return false;
+    */
   }
   
   //Multiplas entradas
