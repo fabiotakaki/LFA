@@ -272,23 +272,28 @@
   });
 
   $('#multiple_inputs').on('click', '.botao', function(event){
-    var nodeRoot;
+    var nodeRoot = null;
       for(var i=0; i<cy.elements().size(); i++){
           if(cy.elements()[i].style('shape') == 'triangle'){
             nodeRoot = cy.elements()[i];
           }
         }
-        // split na string que quero testar
-        var string_text = $('#multiple_'+this.id).val().split('');
-        var index=0;
-        if(moore(index, nodeRoot, string_text)){
-          $('#multiple_'+this.id).css('border', '2px solid green');
-          alert('A entrada é válida e a saída é:\n'+saida); 
+
+        if (nodeRoot != null){
+          // split na string que quero testar
+          var string_text = $('#multiple_'+this.id).val().split('');
+          var index=0;
+          if(moore(index, nodeRoot, string_text)){
+            $('#multiple_'+this.id).css('border', '2px solid green');
+            alert('A entrada é válida e a saída é:\n'+saida); 
+          }else{
+            $('#multiple_'+this.id).css('border', '2px solid red');
+            alert('A entrada não é válida e a saída é:\n'+saida); 
+          }
+          clear_saida();
         }else{
-          $('#multiple_'+this.id).css('border', '2px solid red');
-          alert('A entrada não é válida e a saída é:\n'+saida); 
+          alert('Estado inicial não definido');
         }
-        clear_saida();
   });
 
 </script>
