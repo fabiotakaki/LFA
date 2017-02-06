@@ -128,11 +128,11 @@
     complete: function( sourceNode, targetNodes, addedEntities ) {
       var label = '';
       var text = prompt('Digite o elemento de transição', "");
-      if(text == "" || text == null) text = "λ";
+      if(text == "" || text == null || text.length > 1) text = "λ";
       addedEntities.data('edge_in', text);
       label = text;
       text = prompt('Digite o elemento de saída', "");
-      if(text == "" || text == null) text = "λ";
+      if(text == "" || text == null || text.length > 1) text = "λ";
       addedEntities.data('edge_out', text);
       label = label +';'+text;
       addedEntities.data('label', label);

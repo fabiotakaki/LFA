@@ -30,29 +30,22 @@
       <input type="radio" name="tool" value="eraser"> Deletar  
     </form>
     <h3>Algoritmos</h3>
-    <h4>Testar diretamente</h4>
-    String: <input type="text" name="string" id="string_direct" />
-
-    <h4>Múltiplas Entradas</h4>
-    <button id="add_input">Adicionar entrada</button>
-    <br>
-    <div id="multiple_inputs"></div>
-
-    <h4>Step-by-step</h4>
-    String: <input type="text" name="string_step" id="string_step" />
-    <button id="step">Iniciar</button>
-
-    <h4>Expressões regulares</h4>
-    <h5>Expressão</h5>
-    <input type="text" name="expression" id="expression" />
-    <h5>String para teste</h5>
-    <input type="text" name="string_expression" id="string_expression" />
-
-    <h4>Gramática Regular</h4>
+    <h4>E.R. -> A.F. <button id="erTOaf">Converter</button></h4>
+    Expressão Regular: <input type="text" name="string" id="expRegular" />
+    
+    <h4>G.R. -> A.F. <button id="grTOaf">Converter</button></h4>
+    Gramática Regular: 
     <div id="multiple_grammar"></div>
     <button id="add_rule">Adicionar regra</button>
-    <h5>String para teste</h5>
-    <input type="text" id="string_grammar" /><button id="GLUD">GLUD</button><button id="GLUE">GLUE</button>
+
+    <h4>A.F. -> E.R. <button id="Btn_afTOgr">Converter</button></h4>
+    Expressão Regular:
+    <div id="result_afTOer"></div>
+
+    <h4>A.F. -> G.R. <button id="Btn_afTOgr">Converter</button></h4>
+    Gramática Regular:
+    <div id="result_afTOgr"></div>
+   
   </div>
   <div class="col">
     <div id="cy"></div>
@@ -265,209 +258,7 @@
       }
     }
   });
-  // -------------------------
-  // TESTE DIRETO
-  // -------------------------
-  var visit = function(index, estado, string_text){
-    if(string_text.length == 0){
-        for(var i=0; i<cy.elements().size(); i++){
-        var edge = cy.elements()[i];
-        if(edge.isEdge()){
-          if(edge.data('label') == "λ"){
-              return true;
-          }
-        }
-      }
-    }
-    if(index == string_text.length){
-      if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
-        return true;
-      }else{ return false; }
-    }
-    for(var i=0; i<cy.elements().size(); i++){
-      var edge = cy.elements()[i];
-      if(edge.isEdge()){
-        if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
-          index++;
-          if(visit(index, edge.target(), string_text)){
-            return true;
-          }else{
-            index--;
-          }
-        }
-      }
-    }
-    return false;
-  }
-  $('#string_direct').keyup(function(){
-    var nodeRoot;
-    // pego o evento inicial
-    for(var i=0; i<cy.elements().size(); i++){
-      if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
-        nodeRoot = cy.elements()[i];
-      }
-    }
-    if(nodeRoot === undefined){
-      alert('Estado inicial não definido.');
-    }
-    for(var i=0; i<cy.elements().size(); i++){
-      var element = cy.elements()[i];
-      if(element.isNode()){
-        element.style('background-color', '#666');
-      }
-    }
-    // split na string que quero testar
-    var string_text = $('#string_direct').val().split('');
-    var index=0;
-    if(visit(index, nodeRoot, string_text)){
-      $(this).css('border', '2px solid green'); 
-    }else{
-      $(this).css('border', '2px solid red'); 
-    }
-  });
 
- 
-  // -------------------------
-  // STEP-BY-STEP
-  // -------------------------
-
-  var array = [];
-
-  var printArray = function(){
-    var print = '';
-    print = array[0].id();
-    for(var i=1; i<array.length; i++){
-      print = print + '->'+array[i].id();
-    }
-    return print;
-  }
-
-  var clearArray = function(){
-    array = [];
-  }
-
-  var step = function(index, estado, string_text){
-      if(string_text.length == 0){
-        for(var i=0; i<cy.elements().size(); i++){
-          var edge = cy.elements()[i];
-          if(edge.isEdge()){
-            if(edge.data('label') == "λ"){
-              estado.style('background-color', 'blue');
-              edge.target().style('background-color', 'blue');
-              return true;
-            }
-          }
-        }
-      }
-      if(index == string_text.length){
-        if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
-            estado.style('background-color', 'blue');
-            return true;
-        }else{ estado.style('background-color', '#666'); return false; }
-      }
-
-      for(var i=0; i<cy.elements().size(); i++){
-        var edge = cy.elements()[i];
-        if(edge.isEdge()){
-          if(edge.source().id() == estado.id() && edge.data('label') == string_text[index]){
-            index++;
-            array.push(edge.target());
-            alert(printArray());
-            if(step(index, edge.target(), string_text)){
-              estado.style('background-color', 'blue');
-              return true;
-            }else{
-              index--;
-              array.pop();
-              alert(printArray());
-            }
-          }
-        }
-      }
-      estado.style('background-color', '#666');
-      return false;
-  }
-
-  $('#step').click(function(event) {
-    var nodeRoot;
-    // pego o evento inicial
-    for(var i=0; i<cy.elements().size(); i++){
-      if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
-        nodeRoot = cy.elements()[i];
-      }
-    }
-    if(nodeRoot === undefined){
-      alert('Estado inicial não definido.');
-    }
-    for(var i=0; i<cy.elements().size(); i++){
-      var element = cy.elements()[i];
-      if(element.isNode()){
-        element.style('background-color', '#666');
-      }
-    }
-    nodeRoot.style('background-color', 'blue');
-    var string_text = $('#string_step').val().split('');
-
-    array.push(nodeRoot);
-    alert(printArray());
-    if(step(0, nodeRoot, string_text)){
-      $('#string_step').css('border', '2px solid green');
-    }else{
-      $('#string_step').css('border', '2px solid red');
-    }
-    clearArray();
-  });
-  // -------------------------
-  // expressões regulares
-  // -------------------------
-  function callTester() {
-    var string1 = document.getElementById("string_expression").value;
-    var re = new RegExp(document.getElementById("expression").value);
-    
-    if (re.test(string1)) {
-      console.log("Valido");
-      document.getElementById("string_expression").style.border = "2px solid green"; 
-    } else {
-      console.log("Invalido");
-      document.getElementById("string_expression").style.border = "2px solid red"; 
-    }
-  }
-
-  document.getElementById("expression").addEventListener("keyup", callTester);
-  document.getElementById("string_expression").addEventListener("keyup", callTester);
-  // -------------------------
-  // múltiplas entradas
-  // -------------------------
-  var id_multiple=1;
-  $('#add_input').click(function(event) {
-    $('<br><input type="text" id="multiple_"'+id_multiple+' />').appendTo('#multiple_inputs');
-    id_multiple++;
-    $('#multiple_inputs input').each(function(index, el) {
-      $(el).keyup(function() {
-        var nodeRoot;
-        // pego o evento inicial
-        for(var i=0; i<cy.elements().size(); i++){
-          if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
-            nodeRoot = cy.elements()[i];
-          }
-        }
-        for(var i=0; i<cy.elements().size(); i++){
-          var element = cy.elements()[i];
-          if(element.isNode()){
-            element.style('background-color', '#666');
-          }
-        }
-        // split na string que quero testar
-        var string_text = $(this).val().split('');
-        var index=0;
-        if(visit(index, nodeRoot, string_text)){
-          $(this).css('border', '2px solid green'); 
-        }else{
-          $(this).css('border', '2px solid red');
-        }
-      });
-    });
-  });
   // -------------------------
   // GRAMÁTICA REGULAR
   // -------------------------
@@ -478,163 +269,71 @@
     $('<br><input type="text" name="regra" id="grammar'+contRegras+'" />=><input type="text" value="λ" name="regra_string" />').appendTo('#multiple_grammar');
   });
 
+
   // -------------------------
-  // GRAMÁTICA REGULAR LINEAR UNITARIA A DIREITA
+  // AF->ER
   // -------------------------
+  var ER = [];
+  var cont = 0;
 
-  var GLUD = function(index, regra, string_text){
-    if(string_text.length == 0 || string_text[0] == "λ"){
-          for(var i=0; i<grammar.length; i++){
-            if(grammar[i].nome == regra){
-              if(grammar[i].g1 == "λ"){
-                  return true;
-              }
-            }
-          }
-        return false;
+  var createER = function(){
+    var exp = '';
+    for(var i=0; i<cont; i++){
+      exp = exp + ER[i];
+      if(i+1 != cont){
+        exp = exp+'+';
       }
-
-      if(index == string_text.length){
-        for(var i=0; i<grammar.length; i++){
-          if(grammar[i].nome == regra){
-            if(grammar[i].g1 == "λ" || grammar[i].g1 == string_text[index-1]){
-              return true;
-            }
-          }
-        }
-        return false;
-      }
-
-      for(var i=0; i<grammar.length; i++){
-        if(grammar[i].nome == regra){
-          if(grammar[i].g1 == string_text[index]){
-            index++;
-            if(grammar[i].g2 != ''){
-              if(GLUD(index, grammar[i].g2, string_text)){
-                return true;
-              }
-            }else{
-                index--;
-            }
-          }
-        }
-      }
-      return false;
-  }
-
-  var aux_grammar = '';
-  $('#GLUD').click(function(event) {
-    $('#multiple_grammar input').each(function(index, el) {
-        if (index % 2 === 0) {
-          aux_grammar = $(el).val();
-        }
-        else {
-          var aux2 = $(el).val();
-          var g1, g2;
-          if(aux2.length == 1){
-            g1 = aux2.charAt(0);
-            g2 = '';
-          }else{
-            g1 = aux2.charAt(0);
-            g2 = aux2.charAt(1);
-          }
-          grammar.push({
-            nome: aux_grammar,
-            g1: g1,
-            g2: g2
-          });
-        }
-    });
-
-    var string_text = $('#string_grammar').val().split('');
-    var index = 0;
-    if(GLUD(index, grammar[0].nome, string_text)){
-      $('#string_grammar').css('border', '2px solid green'); 
-    }else{
-      $('#string_grammar').css('border', '2px solid red'); 
     }
-  });
-
-
-  // -------------------------
-  // GRAMÁTICA REGULAR LINEAR UNITARIA A ESQUERDA
-  // -------------------------
-
-  var GLUE = function(index, regra, string_text){
-    if(string_text.length == 0 || string_text[0] == "λ"){
-          for(var i=0; i<grammar.length; i++){
-            if(grammar[i].nome == regra){
-              if(grammar[i].g1 == "λ"){
-                  return true;
-              }
-            }
-          }
-        return false;
-      }
-
-      if(index == -1){
-        for(var i=0; i<grammar.length; i++){
-          if(grammar[i].nome == regra){
-            if(grammar[i].g1 == "λ" || grammar[i].g1 == string_text[index+1]){
-              return true;
-            }
-          }
-        }
-
-        return false;
-      }
-
-      for(var i=0; i<grammar.length; i++){
-        if(grammar[i].nome == regra){
-          if(grammar[i].g2 == string_text[index]){
-            index--;
-            if(grammar[i].g1 != ''){
-              if(GLUE(index, grammar[i].g1, string_text)){
-                return true;
-              }
-            }else{
-                index++;
-            }
-          }
-        }
-      }
-      return false;
+    return exp;
   }
 
 
-  $('#GLUE').click(function(event) {
-
-    $('#multiple_grammar input').each(function(index, el) {
-        if (index % 2 === 0) {
-          var aux_grammar = $(el).val();
-        }
-        else {
-          var aux2 = $(el).val();
-          var g1, g2;
-          if(aux2.length == 1){
-            g1 = aux2.charAt(0);
-            g2 = '';
-          }else{
-            g1 = aux2.charAt(0);
-            g2 = aux2.charAt(1);
+  var afTOer = function(estado, ex){
+    var aux = 0;
+    for(var i=0; i<cy.elements().size(); i++){
+      var edge = cy.elements()[i];
+      if(edge.isEdge()){
+        if(edge.source().id() == estado.id() && estado.id() == edge.target().id()){
+          if(aux == 1) ex = ex + '+';
+          if(aux == 0){
+            ex = ex + '(';
+            aux = 1;
           }
-          grammar.push({
-            nome: aux_grammar,
-            g1: g1,
-            g2: g2
-          });
+          ex = ex + edge.data('label');
         }
-    });
-
-
-    var string_text = $('#string_grammar').val().split('');
-    var index = string_text.length - 1;
-    if(GLUE(index, grammar[0].nome, string_text)){
-      $('#string_grammar').css('border', '2px solid green'); 
-    }else{
-      $('#string_grammar').css('border', '2px solid red'); 
+      }
     }
+    if(aux == 1) ex = ex + ')*';
+    
+    if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
+      ER[cont] = ex;
+      cont++;
+    }
+
+    for(var i=0; i<cy.elements().size(); i++){
+      var edge = cy.elements()[i];
+      if(edge.isEdge()){
+        if(edge.source().id() == estado.id() && estado.id() != edge.target().id()){
+          afTOer(edge.target(), ex+edge.data('label'));
+        }
+      }
+    }
+  }
+  $('#Btn_afTOer').click(function(event){
+    var nodeRoot;
+    // pego o evento inicial
+    for(var i=0; i<cy.elements().size(); i++){
+      if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
+        nodeRoot = cy.elements()[i];
+      }
+    }
+    if(nodeRoot === undefined){
+      alert('Estado inicial não definido.');
+    }
+    afTOer(nodeRoot, '');
+    $('#result_afTOer').html('<br>'+createER());
   });
+
   
 </script>
 </body>

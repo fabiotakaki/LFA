@@ -169,7 +169,7 @@
     if(tool == 0){
       var elm = $(this);
       var text = prompt('Digite a saída do estado', "");
-      if(text == "" || text == null) text = "λ";
+      if(text == "" || text == null || text.length > 1) text = "λ";
       cy.add({
         group: "nodes",
         data: { id: "q"+q, node_out: text },
