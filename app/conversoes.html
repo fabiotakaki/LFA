@@ -38,7 +38,7 @@
     <div id="multiple_grammar"></div>
     <button id="add_rule">Adicionar regra</button>
 
-    <h4>A.F. -> E.R. <button id="Btn_afTOgr">Converter</button></h4>
+    <h4>A.F. -> E.R. <button id="Btn_afTOer">Converter</button></h4>
     Expressão Regular:
     <div id="result_afTOer"></div>
 
@@ -279,7 +279,7 @@
   var createER = function(){
     var exp = '';
     for(var i=0; i<cont; i++){
-      exp = exp + ER[i];
+      exp = exp + ER[i].er;
       if(i+1 != cont){
         exp = exp+'+';
       }
@@ -287,8 +287,13 @@
     return exp;
   }
 
+  var clearER = function(){
+    ER = [];
+    cont = 0;
+  }
 
-  var afTOer = function(estado, ex){
+
+  var afTOer = function(estado, ex, last, pai){
     var aux = 0;
     for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
@@ -302,19 +307,38 @@
           ex = ex + edge.data('label');
         }
       }
-    }
+    } 
     if(aux == 1) ex = ex + ')*';
+    else if(ex == '' && estado.style('shape') == 'star') ex = ex + 'λ';
     
     if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
-      ER[cont] = ex;
+      for(var i=0; i<cont; i++){
+        if(ER[i].sour == pai && ER[i].tran == last && ER[i].targ == estado.id()){
+          ER.push({
+            er: ex,
+            sour: pai,
+            tran: last,
+            targ: estado.id()
+          });
+          cont++; 
+          return;
+        }
+      }
+      ER.push({
+        er: ex,
+        sour: pai,
+        tran: last,
+        targ: estado.id()
+      });
       cont++;
+      if (ex == 'λ') ex = '';
     }
 
     for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
       if(edge.isEdge()){
         if(edge.source().id() == estado.id() && estado.id() != edge.target().id()){
-          afTOer(edge.target(), ex+edge.data('label'));
+          afTOer(edge.target(), ex+edge.data('label'), edge.data('label'), estado.id());
         }
       }
     }
@@ -330,9 +354,208 @@
     if(nodeRoot === undefined){
       alert('Estado inicial não definido.');
     }
-    afTOer(nodeRoot, '');
+    afTOer(nodeRoot, '', '', nodeRoot.id());
     $('#result_afTOer').html('<br>'+createER());
+    console.log(ER);
+    clearER();
   });
+
+
+  // -------------------------
+  // AF->GR
+  // -------------------------
+  var grammar = [];
+  var contGR = 0;
+
+  var clearGR = function(){
+    grammar = [];
+    contGR = 0;
+  }
+
+  var hashGR = function(str){
+    var numero = str.split('')[1];
+    var asc = numero.charCodeAt(0);
+    asc = asc - 48;
+    if (asc == 0) return (String.fromCharCode(83));
+    else{
+      asc = asc + 64;
+      if (asc >= 83) return (String.fromCharCode(asc+1));
+      else return (String.fromCharCode(asc));
+    }
+  }
+
+  var createGR = function(){
+    var gr = '';
+    for(var i=0; i<contGR; i++){
+      if(grammar[i].g1 != "λ"){
+        gr = gr+hashGR(grammar[i].nome)+'->'+grammar[i].g1+hashGR(grammar[i].g2)+'<br>';
+      }else{
+        gr = gr+hashGR(grammar[i].nome)+'->'+grammar[i].g1+'<br>';
+      }
+    }
+    return gr;
+  }
+
+  var afTOgr = function(estado){
+    for(var i=0; i<cy.elements().size(); i++){
+      var edge = cy.elements()[i];
+      if(edge.isEdge()){
+        if(estado.id() == edge.source().id()){
+          grammar.push({
+            nome: estado.id(),
+            g1: edge.data('label'),
+            g2: edge.target().id()
+          });
+          contGR++;
+        }
+      }
+    }
+
+    if(estado.style('shape') == 'star'){
+      grammar.push({
+        nome: estado.id(),
+        g1: "λ",
+        g2: ""
+      });
+      contGR++;
+    }
+
+    for(var i=0; i<cy.elements().size(); i++){
+      var node = cy.elements()[i];
+      if(node != estado){
+        for(var j=0; j<cy.elements().size(); j++){
+          var edge = cy.elements()[j];
+          if(edge.isEdge()){
+            if(node.id() == edge.source().id()){
+              grammar.push({
+                nome: node.id(),
+                g1: edge.data('label'),
+                g2: edge.target().id()
+              });
+              contGR++;
+            }
+          }
+        }
+        if(node.style('shape') == 'diamond'){
+          grammar.push({
+            nome: node.id(),
+            g1: "λ",
+            g2: ""
+          });
+          contGR++;
+        }
+      }
+    }
+  }
+
+
+  $('#Btn_afTOgr').click(function(event){
+    var nodeRoot;
+    // pego o evento inicial
+    for(var i=0; i<cy.elements().size(); i++){
+      if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
+        nodeRoot = cy.elements()[i];
+      }
+    }
+    if(nodeRoot === undefined){
+      alert('Estado inicial não definido.');
+    }
+    afTOgr(nodeRoot);
+    $('#result_afTOgr').html('<br>'+createGR());
+    clearGR();
+
+  });
+
+
+  // -------------------------
+  // ER -> AF
+  // -------------------------
+
+  var auto_er = [];
+  var contER = 0;
+  var strER = '';
+  var contQ = 0;
+
+  var addElemento = function(toAdd){
+    var aut = '';
+    aut = toAdd;
+    return aut;
+  }
+
+  var addOU = function(toAdd){
+
+  }
+
+
+  var teste = function(x){
+    var fp = -1;
+    if(x == strER.length){
+      return x;
+    }
+    if(strER[x] == '('){
+      for(var i=x+1; i<strER.length; i++){
+        if(strER[i] == '('){
+          teste(i);
+        }
+        if(strER[i] == ')'){
+          if(i+1 < strER.length){
+            if(strER[i+1] == '*'){
+              return addFechamento(x, i+1);
+            }
+          }
+          }
+        }
+      }
+    }
+  }
+
+  
+
+
+  var erTOaf = function(cont){
+    if(strER[cont] != '(' && strER[cont] != '+' && strER[cont] != '*' && strER[cont] != ')'){
+      addElemento();
+      cont++;
+      for(; cont<strER.length; cont++){
+        if(strER[cont] != '(' && strER[cont] != '+' && strER[cont] != '*' && strER[cont] != ')')
+          addElemento();
+        else
+          break;
+      }
+      return erTOaf(cont);
+    }
+    else{
+      if(strER[cont] == '('){
+        cont++;
+        erTOaf(cont);
+        if(strER[cont] == ')')
+          return true;
+        else
+          return false;
+      }
+      else{
+        if(strER[cont] == '+'){
+          cont = addOU(cont);
+            return erTOaf(cont);
+        }
+        else{
+          if (')'){
+            return true;
+          }
+          else{
+            if(strER[cont] == '*'){
+              cont = addFechamento(cont);
+              return erTOaf(cont);
+            }
+          }
+        }
+      }
+    }
+
+  }
+
+
+
 
   
 </script>
