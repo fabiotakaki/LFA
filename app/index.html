@@ -22,6 +22,7 @@
     <h2>Parte 1</h2>
     <h3>Ferramentas</h3>
     <button id="help">Ajuda</button>
+    <button id="download">Download JFlap</button>
     <form>
       <input type="radio" name="tool" value="node" checked> Estados<br>
       <input type="radio" name="tool" value="initial"> Estados Inicial<br>
@@ -63,6 +64,7 @@
 <script type="text/javascript" src="assets/js/cytoscape/cytoscape.min.js"></script>
 <script type="text/javascript" src="assets/js/cytoscape-edgehandles/cytoscape-edgehandles.js"></script>
 <script type="text/javascript" src="assets/js/jquery-3.1.1.min.js"></script>
+<script type="text/javascript" src="assets/js/xml2json.min.js"></script>
 
 <script type="text/javascript">
   // -------------------------
@@ -634,6 +636,80 @@
     }else{
       $('#string_grammar').css('border', '2px solid red'); 
     }
+  });
+
+  // crio elemento A para download
+  function download(filename, text) {
+      var pom = document.createElement('a');
+      pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      pom.setAttribute('download', filename);
+
+      if (document.createEvent) {
+          var event = document.createEvent('MouseEvents');
+          event.initEvent('click', true, true);
+          pom.dispatchEvent(event);
+      }
+      else {
+          pom.click();
+      }
+  }
+
+  $('#download').click(function(event) {
+    $.getJSON('structure.json', function(json, textStatus) {
+
+      var j = json;
+
+      for(var i=0; i<cy.elements().size(); i++){
+        if(cy.elements()[i].isNode()){
+          // estados e seus ids
+          j.structure.structure.structure.structure[0].state.push({"name": cy.elements()[i].id(),"id":cy.elements()[i].id().charAt(1)});
+          // estados iniciais
+          if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
+            j.structure.structure.structure.structure[1].state = {"name": cy.elements()[i].id(),"id": cy.elements()[i].id().charAt(1)};
+          }
+          // estados finais
+          if(cy.elements()[i].style('shape') == 'diamond' || cy.elements()[i].style('shape') == 'star'){
+            j.structure.structure.structure.structure[3].state.push({"name": cy.elements()[i].id(),"id": cy.elements()[i].id().charAt(1)});
+          }
+          // coordenadas dos elementos
+          j.structure.structure.state_point_map.state_point.push({"state": cy.elements()[i].id().charAt(1), "point": {"x": cy.elements()[i].position('x'), "y":cy.elements()[i].position('y')}});
+
+        }
+
+
+        if(cy.elements()[i].isEdge()){
+          // elementos das transições
+          j.structure.structure.structure.structure[2].symbol.push(cy.elements()[i].data('label'));
+          // transições
+          j.structure.structure.structure.structure[4].fsa_trans.push({
+            "input": cy.elements()[i].data('label'),
+            "from": {
+              "name": cy.elements()[i].source().id(),
+              "id": cy.elements()[i].source().id().charAt(1)
+            },
+            "to": {
+              "name": cy.elements()[i].target().id(),
+              "id": cy.elements()[i].target().id().charAt(1)
+            }
+          });
+          // pontos de controle das transições
+          j.structure.structure.control_point_map.control_point.push({
+            "from":cy.elements()[i].source().id().charAt(1),
+            "to":cy.elements()[i].target().id().charAt(1),
+            "point": {
+              "x": (parseFloat(cy.elements()[i].source().position('x'))+parseFloat(cy.elements()[i].target().position('x'))/2),
+              "y": parseFloat(cy.elements()[i].source().position('y'))
+            }
+          });
+        }
+      }
+
+      var str = JSON.stringify(j);
+      var x2js = new X2JS();
+      var xmlAsStr = x2js.json2xml_str( j );
+
+      download('EstruturaEmJFLAP.jflap', '<?xml version="1.0" encoding="UTF-8"?>'+xmlAsStr);
+    });
   });
   
 </script>
