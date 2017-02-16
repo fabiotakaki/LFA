@@ -30,10 +30,10 @@
       <input type="radio" name="tool" value="eraser"> Deletar  
     </form>
     <h3>Algoritmos</h3>
-    <h4>E.R. -> A.F. <button id="erTOaf">Converter</button></h4>
+    <h4>E.R. -> A.F. <button id="Btn_erTOaf">Converter</button></h4>
     Expressão Regular: <input type="text" name="string" id="expRegular" />
     
-    <h4>G.R. -> A.F. <button id="grTOaf">Converter</button></h4>
+    <h4>G.R. -> A.F. <button id="Btn_grTOaf">Converter</button></h4>
     Gramática Regular: 
     <div id="multiple_grammar"></div>
     <button id="add_rule">Adicionar regra</button>
@@ -138,6 +138,8 @@
       if(text == "") text = "λ";
       if(text.length > 1) text = "λ";
       addedEntities.data('label', text);
+      addedEntities.data('fechamentoInicial', 0);
+      
     },
     stop: function( sourceNode ) {
     }
@@ -273,76 +275,203 @@
   // -------------------------
   // AF->ER
   // -------------------------
-  var ER = [];
-  var cont = 0;
-
+  
   var createER = function(){
-    var exp = '';
-    for(var i=0; i<cont; i++){
-      exp = exp + ER[i].er;
-      if(i+1 != cont){
-        exp = exp+'+';
-      }
-    }
-    return exp;
-  }
-
-  var clearER = function(){
-    ER = [];
-    cont = 0;
-  }
-
-
-  var afTOer = function(estado, ex, last, pai){
+    var ER = '';
     var aux = 0;
+     for(var i=0; i<cy.elements().size(); i++){
+      var aresta = cy.elements()[i];
+      if(aresta.isEdge()){
+        if(aresta.source().id() == aresta.target().id() && aresta.source().style('shape') == 'triangle'){
+          if(aux == 1){ER = ER + '+';}
+          if(aux == 0){ER = '('; aux = 1;}
+          ER = ER + aresta.data('label');
+        }
+      }
+    }
+    if(aux == 1) ER = ER + ')*';
+    aux = 0;
     for(var i=0; i<cy.elements().size(); i++){
-      var edge = cy.elements()[i];
-      if(edge.isEdge()){
-        if(edge.source().id() == estado.id() && estado.id() == edge.target().id()){
-          if(aux == 1) ex = ex + '+';
-          if(aux == 0){
-            ex = ex + '(';
-            aux = 1;
+      var aresta = cy.elements()[i];
+      if(aresta.isEdge()){
+        if(aresta.target().id() == 'FINAL'){
+          if(aux == 1){ER = ER + '+';}
+          if(aux == 0){aux = 1;}
+          ER = ER + aresta.data('label');
+        }
+      }
+    }
+    return ER;
+  }
+
+  var colapsar = function(estado, fechInicial){
+    var fech1 = '';
+    var fech2 = '';
+    var aux = 0;
+    //console.log(estado.id());
+
+    for(var k=0; k<estado.neighborhood().size(); k++){
+      var arestaFechamento = estado.neighborhood()[k];
+      if(arestaFechamento.isEdge()){
+        if(arestaFechamento.source().id() == estado.id() && arestaFechamento.target().id() == estado.id() && arestaFechamento.data('label') != 'λ'){
+          if(aux == 1){fech1 = fech1+'+';}
+          if(aux == 0){fech1 = '('; aux = 1;}
+          fech1 = fech1 + arestaFechamento.data('label');
+          arestaFechamento.remove();
+        }
+      }
+    }
+    if(aux == 1) fech1 = fech1 + ')*';
+
+    for(var i=0; i<estado.neighborhood().size(); i++){
+      var aresta = estado.neighborhood()[i];
+      if(aresta.isEdge()){
+        if(aresta.source().id() == estado.id() && aresta.target().id() != estado.id()){
+          aux = 0;
+          for(var j=0; j<aresta.target().neighborhood().size(); j++){
+            var arestaVolta = aresta.target().neighborhood()[j];
+            if(arestaVolta.isEdge()){
+              //console.log(arestaVolta.data());
+              if(arestaVolta.target().id() == estado.id() && aresta.target().id() == arestaVolta.source().id()){
+                //console.log(arestaVolta.data());
+                if(aux == 1) fech2 = fech2 + '+';
+                aux = 1;
+                fech2 = fech2+'('+ aresta.data('label')+arestaVolta.data('label')+')*';
+
+              }
+            }
           }
-          ex = ex + edge.data('label');
         }
       }
-    } 
-    if(aux == 1) ex = ex + ')*';
-    else if(ex == '' && estado.style('shape') == 'star') ex = ex + 'λ';
-    
-    if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
-      for(var i=0; i<cont; i++){
-        if(ER[i].sour == pai && ER[i].tran == last && ER[i].targ == estado.id()){
-          ER.push({
-            er: ex,
-            sour: pai,
-            tran: last,
-            targ: estado.id()
-          });
-          cont++; 
-          return;
+    }
+    if(aux == 1 && fech1 != '') fech2 = fech1+'('+fech2+')';
+    else fech2 = fech1;
+
+    for(var l=0; l<cy.elements().size(); l++){
+      var aux_fechInicial = 0;
+      var aux_label = 0;
+      var arestaChega = cy.elements()[l];
+      if(arestaChega.isEdge()){
+        if(arestaChega.target().id() == estado.id() && arestaChega.source().id() != estado.id()){
+          if(arestaChega.source().style('shape') == 'triangle'){
+            if(arestaChega.data('fechamentoInicial') == 0){
+              aux_label = 1;
+              arestaChega.data('fechamentoInicial', 1);
+              aux_fechInicial = 1;
+            }
+            else{
+             aux_fechInicial = 1;
+           }
+         }
+
+          for(var j=0; j<estado.neighborhood().size(); j++){
+            var arestaSai = estado.neighborhood()[j];
+            if(arestaSai.isEdge()){
+              if(arestaSai.source().id() == estado.id() && arestaSai.target().id() != estado.id()){
+                if(aux_label == 0)
+                  cy.add({
+                    group: "edges",
+                    data: {source: arestaChega.source().id(), target: arestaSai.target().id(), 
+                      label: arestaChega.data('label')+fech2+arestaSai.data('label'), fechamentoInicial: aux_fechInicial }
+                  });
+                else
+                  cy.add({
+                    group: "edges",
+                    data: {source: arestaChega.source().id(), target: arestaSai.target().id(), 
+                      label: fechInicial+arestaChega.data('label')+fech2+arestaSai.data('label'), fechamentoInicial: aux_fechInicial }
+                  });
+              }
+            }
+          }
         }
       }
-      ER.push({
-        er: ex,
-        sour: pai,
-        tran: last,
-        targ: estado.id()
-      });
-      cont++;
-      if (ex == 'λ') ex = '';
+    }
+    estado.remove();
+  }
+
+  var afTOer = function(){
+    var fechInicial = '';
+    var aux = 0;
+    cy.add({
+      group: "nodes",
+      data: { id: "FINAL" },
+      position: { 
+        x: 300, 
+        y: 250
+      },
+      style: { shape: 'diamond'},
+    });
+    for(var i=0; i<cy.elements().size(); i++){
+      var node = cy.elements()[i];
+      if(node.isNode()){
+        if(node.data('id') != 'FINAL'){
+
+          if(node.style('shape') == 'star'){
+            node.style('shape', 'triangle');
+            for(var j=0; j<node.neighborhood().size(); j++){
+              edge = node.neighborhood()[j];
+              if(edge.isEdge()){
+                if(edge.source().id() == node.id() && edge.target().id() == node.id()){
+                  if(aux == 1){fechInicial = fechInicial+'+';}
+                  if(aux == 0){fechInicial = '('; aux = 1;}
+                  fechInicial = fechInicial + edge.data('label');
+                  edge.remove();
+                }
+              }
+            }
+            if (aux == 1){
+              fechInicial = fechInicial + ')*';
+              cy.add({
+                group: "edges",
+                data: {source: edge.source().id(), target: 'FINAL', label: fechInicial}
+              });
+            }
+            cy.add({
+              group: "edges",
+              data: {source: edge.source().id(), target: 'FINAL', label: 'λ'}
+            });    
+          }
+          else if(node.style('shape') == 'triangle'){
+            for(var j=0; j<node.neighborhood().size(); j++){
+              edge = node.neighborhood()[j];
+              if(edge.isEdge()){
+                if(edge.source().id() == node.id() && edge.target().id() == node.id()){
+                  if(aux == 1){fechInicial = fechInicial+'+';}
+                  if(aux == 0){fechInicial = '('; aux = 1;}
+                  fechInicial = fechInicial + edge.data('label');
+                  edge.remove();
+                }
+              }
+            }
+            if(aux == 1) fechInicial = fechInicial + ')*';
+          }
+
+          if(node.style('shape') == 'diamond'){ 
+            node.style('shape', 'ellipse');
+            cy.add({
+              group: "edges",
+              data: {source: node.id(), target: 'FINAL', label:''}
+            }); 
+          }
+        }
+      }
     }
 
     for(var i=0; i<cy.elements().size(); i++){
-      var edge = cy.elements()[i];
-      if(edge.isEdge()){
-        if(edge.source().id() == estado.id() && estado.id() != edge.target().id()){
-          afTOer(edge.target(), ex+edge.data('label'), edge.data('label'), estado.id());
+      var node = cy.elements()[i];
+      if(node.isNode()){
+        if(node.style('shape') != 'triangle' && node.style('shape') != 'diamond'){
+          colapsar(node, fechInicial);
+          console.log(node.id());
+          for(var l=0; l<cy.elements().size(); l++){
+            aresta = cy.elements()[l];
+            if(aresta.isEdge()) console.log(aresta.source().id()+aresta.data('label')+aresta.target().id());
+          }
         }
       }
     }
   }
+
   $('#Btn_afTOer').click(function(event){
     var nodeRoot;
     // pego o evento inicial
@@ -353,11 +482,14 @@
     }
     if(nodeRoot === undefined){
       alert('Estado inicial não definido.');
+    }else{
+      afTOer();
+      $('#result_afTOer').html('<br>'+createER());
     }
-    afTOer(nodeRoot, '', '', nodeRoot.id());
-    $('#result_afTOer').html('<br>'+createER());
-    console.log(ER);
-    clearER();
+    //afTOer(nodeRoot, '', '', nodeRoot.id());
+    //$('#result_afTOer').html('<br>'+createER());
+    //console.log(ER);
+    //clearER();
   });
 
 
@@ -486,32 +618,6 @@
 
   }
 
-
-  var teste = function(x){
-    var fp = -1;
-    if(x == strER.length){
-      return x;
-    }
-    if(strER[x] == '('){
-      for(var i=x+1; i<strER.length; i++){
-        if(strER[i] == '('){
-          teste(i);
-        }
-        if(strER[i] == ')'){
-          if(i+1 < strER.length){
-            if(strER[i+1] == '*'){
-              return addFechamento(x, i+1);
-            }
-          }
-          }
-        }
-      }
-    }
-  }
-
-  
-
-
   var erTOaf = function(cont){
     if(strER[cont] != '(' && strER[cont] != '+' && strER[cont] != '*' && strER[cont] != ')'){
       addElemento();
@@ -555,7 +661,98 @@
   }
 
 
+  // -------------------------
+  // GR -> AF
+  // -------------------------
 
+  var createposition = function(i){
+    var position = [];
+    var x = 100+80*i;
+    var y = 150+30*i;
+    position.push({
+      x: x,
+      y: y
+    })
+    return position;
+  }
+
+  var grTOaf = function(){
+    for(var i=0; i<grammar.length; i++){
+      var position = createposition(i);
+      if(grammar[i].nome == 'S'){
+        cy.add({
+          group: "nodes",
+          data: {id: grammar[i].nome},
+          position: { 
+            x: position[0].x, 
+            y: position[0].y
+          },
+          style: {shape: 'triangle'}
+        });
+      }
+      else{
+        cy.add({
+          group: "nodes",
+          data: {id: grammar[i].nome},
+          position: { 
+            x: position[0].x, 
+            y: position[0].y
+          }
+        });
+      }
+    }
+    cy.add({
+      group: "nodes",
+      data: {id: 'FINAL'},
+      style: {shape: 'diamond'},
+      position: { 
+        x: 80, 
+        y: 80
+      }
+    });
+    for(var i=0; i<grammar.length; i++){
+      if(grammar[i].g2 == ''){
+        cy.add({
+          group: "edges",
+          data: {id: grammar[i].nome+' to FINAL', source: grammar[i].nome, target: 'FINAL', label: grammar[i].g1},
+        });
+      }
+      else{
+        cy.add({
+          group: "edges",
+          data: {id: grammar[i].nome+' to '+grammar[i].g2, source: grammar[i].nome, target: grammar[i].g2, label: grammar[i].g1},
+        });
+      }
+    }
+
+  }
+
+
+  $('#Btn_grTOaf').click(function(event){
+    clearGR();
+    $('#multiple_grammar input').each(function(index, el) {
+      if (index % 2 === 0) {
+        aux_grammar = $(el).val();
+      }
+      else {
+        var aux2 = $(el).val();
+        var g1, g2;
+        if(aux2.length == 1){
+          g1 = aux2.charAt(0);
+          g2 = '';
+        }else{
+          g1 = aux2.charAt(0);
+          g2 = aux2.charAt(1);
+        }
+        grammar.push({
+          nome: aux_grammar,
+          g1: g1,
+          g2: g2
+        });
+      }
+    });
+    grTOaf();
+  });
 
   
 </script>

@@ -29,6 +29,9 @@
       <input type="radio" name="tool" value="change_label"> Mudar elemento de transição<br>
       <input type="radio" name="tool" value="eraser"> Deletar  
     </form>
+    <h4>Testar diretamente</h4>
+    String: <input type="text" name="string" id="input_direct"/><button id="string_direct">Testar</button>
+
     <h4>Múltiplas Entradas</h4>
     <button id="add_input">Adicionar entrada</button>
     <br>
@@ -127,7 +130,7 @@
     },
     complete: function( sourceNode, targetNodes, addedEntities ) {
       var text = prompt('Digite o caractere', "");
-      if(text == "" || text == null) text = "λ";
+      if(text == "" || text == null || text.length > 1) text = "λ";
       addedEntities.data('label', text);
     },
     stop: function( sourceNode ) {
@@ -169,7 +172,7 @@
     if(tool == 0){
       var elm = $(this);
       var text = prompt('Digite a saída do estado', "");
-      if(text == "" || text == null || text.length > 1) text = "λ";
+      if(text == "" || text == null) text = "λ";
       cy.add({
         group: "nodes",
         data: { id: "q"+q, node_out: text },
@@ -312,6 +315,38 @@
         }else{
           alert('Estado inicial não definido');
         }
+  });
+
+  $('#string_direct').click(function(){
+    var nodeRoot = null;
+    // pego o evento inicial
+    for(var i=0; i<cy.elements().size(); i++){
+      if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
+        nodeRoot = cy.elements()[i];
+      }
+    }
+    if(nodeRoot === undefined){
+      alert('Estado inicial não definido.');
+    }
+    for(var i=0; i<cy.elements().size(); i++){
+      var element = cy.elements()[i];
+      if(element.isNode()){
+        element.style('background-color', '#666');
+      }
+    }
+    // split na string que quero testar
+    var string_text = $('#input_direct').val().split('');
+    var index=0;
+    if(nodeRoot != null){
+      if(moore(index, nodeRoot, string_text)){
+        $('#input_direct').css('border', '2px solid green');
+        alert('A entrada é válida e a saída é:\n'+saida); 
+      }else{
+        $('#input_direct').css('border', '2px solid red');
+        alert('A entrada não é válida e a saída é:\n'+saida); 
+      }
+      clear_saida();
+    }
   });
 
 </script>
