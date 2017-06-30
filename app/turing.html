@@ -9,7 +9,7 @@
 <header>
   <h1>Trabalho de Linguagens Formais e Autômatos</h1>
   <h2>Prof. Celso Olivete Júnior</h2>
-  <h3>Fábio da Silva Takaki e Lucas Martins Valladares Ribeiro</h3>
+  <h3>Fábio da Silva Takaki e Arthur de Moraes Pires</h3>
   <ul class="nav">
     <li><a href="index.html">Parte 1</a></li>
     <li><a href="moore.html">Máquina de Moore</a></li>
@@ -20,13 +20,13 @@
 </header>
 <div class="container">
   <div class="col-ferramentas">
-    <h2>Máquina de Moore</h2>
+    <h2>Máquina de Turing</h2>
     <h3>Ferramentas</h3>
     <button id="help">Ajuda</button>
     <form>
       <input type="radio" name="tool" value="node" checked> Estados<br>
       <input type="radio" name="tool" value="initial"> Estados Inicial<br>
-      <input type="radio" name="tool" value="change_out"> Mudar Saída<br>
+      <input type="radio" name="tool" value="end"> Estados Finais<br>
       <input type="radio" name="tool" value="change_label"> Mudar elemento de transição<br>
       <input type="radio" name="tool" value="eraser"> Deletar  
     </form>
@@ -37,6 +37,10 @@
     <button id="add_input">Adicionar entrada</button>
     <br>
     <div id="multiple_inputs"></div>
+
+    <br><br>
+    <b>Passo a passo da fila:</b><br>
+    <div class="fila"></div>
   </div>
   <div class="col">
     <div id="cy"></div>
@@ -130,9 +134,24 @@
     start: function( sourceNode ) {
     },
     complete: function( sourceNode, targetNodes, addedEntities ) {
-      var text = prompt('Digite o caractere', "");
+      var label = '';
+
+      var text = prompt('Digite o elemento a ser lido na fita', "");
       if(text == "" || text == null || text.length > 1) text = "λ";
-      addedEntities.data('label', text);
+      addedEntities.data('read_step', text);
+      label = text;
+
+      text = prompt('Digite o elemento a ser escrito na fita', "");
+      if(text == "" || text == null) text = "λ";
+      addedEntities.data('write_step', text);
+      label = label +';'+text;
+
+      text = prompt('Digite R ou L para direita ou esquerda respectivamente', "");
+      if(text == "" || text == null) text = "R";
+      addedEntities.data('step_queue', text);
+      label = label +';'+text;
+
+      addedEntities.data('label', label);
     },
     stop: function( sourceNode ) {
     }
@@ -156,7 +175,7 @@
       if (this.value == 'initial') {
         tool = 1;
       }
-      if (this.value == 'change_out') {
+      if (this.value == 'end') {
         tool = 2;
       }
       if (this.value == 'change_label') {
@@ -171,13 +190,10 @@
     
     // inserção de nós
     if(tool == 0){
-      var elm = $(this);
-      var text = prompt('Digite a saída do estado', "");
-      if(text == "" || text == null) text = "λ";
       cy.add({
         group: "nodes",
-        data: { id: "q"+q, node_out: text },
-        style: { label: 'q'+q+'\n----\n'+text },
+        data: { id: "q"+q,},
+        style: { label: 'q'+q},
         position: { 
           x: event.cyPosition.x, 
           y: event.cyPosition.y
@@ -193,6 +209,18 @@
             event.cyTarget.style({shape:'ellipse'});
             initial = 0;
           }
+          else if(event.cyTarget.style().shape == "star"){
+            event.cyTarget.style({shape:'diamond'});
+            initial = 0;
+          }
+          else if(event.cyTarget.style().shape == "diamond"){
+            if(initial == 0){
+              event.cyTarget.style({shape:'star'});
+              initial = 1;
+            }else{
+              alert('Já existe um estado inicial.');
+            }
+          }
           else{
             if(initial == 0){
               event.cyTarget.style({shape:'triangle'});
@@ -204,31 +232,48 @@
         }
       }
     }
-    //muda saida do nó
+    //estados finais
     if(tool == 2){
       if(event.cyTarget != cy){ // verifico se clicou em um elemento
         if(event.cyTarget.isNode()){ // verifico se é um node
-          var text = prompt('Digite a nova saída do estado', "");
-          if(text == "" || text == null) text = "λ";
-          event.cyTarget.style('label', event.cyTarget.id()+'\n-\n'+text);
-          event.cyTarget.data('node_out', text);
+          if(event.cyTarget.style().shape == "triangle"){
+            event.cyTarget.style({shape:'star'});
+          }
+          else if(event.cyTarget.style().shape == "star"){
+            event.cyTarget.style({shape:'triangle'});
+          }
+          else if(event.cyTarget.style().shape == "diamond"){
+            event.cyTarget.style({shape:'ellipse'});
+          }
+          else{
+            event.cyTarget.style({shape:'diamond'});
+          }
         }
       }
-    }
+    } 
     //muda elemento de transição
     if(tool == 3){
       if(event.cyTarget != cy){ // verifico se clicou em um elemento
         if(event.cyTarget.isEdge()){ // verifico se é um node
-          var text = prompt('Digite o novo elemento de transição', "");
+          var text = prompt('Digite o novo elemento a ser lido na fita', "");
           if(text == "" || text == null) text = "λ";
-          event.cyTarget.data('label', text);
+          event.cyTarget.data('read_step', text);
+
+          var text2 = prompt('Digite o novo elemento a ser escrito na fita', "");
+          if(text2 == "" || text2 == null) text2 = "λ";
+          event.cyTarget.data('write_step', text2);
+
+          var text3 = prompt('Digite o novo caminho R ou L para direita ou esquerda respectivamente', "");
+          if(text3 == "" || text3 == null) text3 = "R";
+          event.cyTarget.data('step_queue', text3);
+
+          event.cyTarget.data('label', text+';'+text2+';'+text3);
         }
       }
     }
     // deleta elementos
     if(tool == 20){
       if(event.cyTarget != cy){
-        console.log( 'tap ' + event.cyTarget.id() );
         // se for um estado inicial, eu reseto a variavel initial
         if(event.cyTarget.style().shape == "triangle") initial = 0;
         event.cyTarget.remove();
@@ -236,90 +281,67 @@
     }
   });
 
-  //moore
-  var saida = '';
-  var clear_saida = function(){
-    saida = '';
+  // -------------------------
+  // TESTE DIRETO
+  // -------------------------
+
+  //turing
+  var fila = [];
+  var clear_fila = function(){
+    fila = [];
+    $('.fila').html('');
   }
 
-  var moore = function(index, estado, string_text){
-    saida = saida+estado.data('node_out');
-
-
+  var turing = function(index, index_fila, estado, string_text){
+    if(string_text.length == 0){
+        for(var i=0; i<cy.elements().size(); i++){
+        var edge = cy.elements()[i];
+        if(edge.isEdge()){
+          if(edge.data('read_step') == "λ"){
+              return true;
+          }
+        }
+      }
+    }
     if(index == string_text.length){
-      return true;
+      if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
+        return true;
+      }else{ return false; }
     }
 
     for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
       if(edge.isEdge()){
-        if(edge.source().id() == estado.id()){
-          if(edge.data('label').length > 1){
-            var dataText = '';
-            //cria string para comparação com a aresta
-            for(var i=0; i<edge.data('label').length; i++){
-              if(index == string_text.length) return false;
-              dataText = dataText + string_text[index];
-              index++;
+        if(edge.source().id() == estado.id() && edge.data('read_step') == string_text[index]){
+          // caminho com a fila
+          if(edge.data('step_queue').localeCompare('L') == 0){
+            if(index_fila == 0) return false;
+            else{
+              fila.splice(index_fila, 1, edge.data('write_step'));
+              console.log(fila.join());
+              $('.fila').append(fila.join()+'<br>');
+              index_fila--;
             }
-            console.log(edge.data('label'));
-            console.log(dataText);
+          }else if(edge.data('step_queue').localeCompare('R') == 0){
+            fila.splice(index_fila, 1, edge.data('write_step'));
+            console.log(fila.join());
+            $('.fila').append(fila.join()+'<br>');
+            index_fila++;
+          }
 
-            if(dataText.localeCompare(edge.data('label')) == 0){
-              if(moore(index, edge.target(), string_text)){
-                return true;
-              }else{
-                return false;
-              }
-            }
-          }else if(edge.data('label') == string_text[index]){
-            index++;
-            if(moore(index, edge.target(), string_text)){
-              return true;
-            }else{
-              return false;
-            }
+          index++;
+          if(turing(index, index_fila, edge.target(), string_text)){
+            return true;
+          }else{
+            index--;
           }
         }
       }
     }
     return false;
   }
-  
-  //Multiplas entradas
-  var id_multiple=1;
-  $('#add_input').click(function(event) {
-    $('<br><input type="text" class="local" id="multiple_'+id_multiple+'" /><button id="'+id_multiple+'" class="botao">Simular</button>').appendTo('#multiple_inputs');
-    id_multiple++;
-  });
-
-  $('#multiple_inputs').on('click', '.botao', function(event){
-    var nodeRoot = null;
-      for(var i=0; i<cy.elements().size(); i++){
-          if(cy.elements()[i].style('shape') == 'triangle'){
-            nodeRoot = cy.elements()[i];
-          }
-        }
-
-        if (nodeRoot != null){
-          // split na string que quero testar
-          var string_text = $('#multiple_'+this.id).val().split('');
-          var index=0;
-          if(moore(index, nodeRoot, string_text)){
-            $('#multiple_'+this.id).css('border', '2px solid green');
-            alert('A entrada é válida e a saída é:\n'+saida); 
-          }else{
-            $('#multiple_'+this.id).css('border', '2px solid red');
-            alert('A entrada não é válida e a saída é:\n'+saida); 
-          }
-          clear_saida();
-        }else{
-          alert('Estado inicial não definido');
-        }
-  });
-
   $('#string_direct').click(function(){
-    var nodeRoot = null;
+    var nodeRoot;
     // pego o evento inicial
     for(var i=0; i<cy.elements().size(); i++){
       if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
@@ -338,16 +360,50 @@
     // split na string que quero testar
     var string_text = $('#input_direct').val().split('');
     var index=0;
-    if(nodeRoot != null){
-      if(moore(index, nodeRoot, string_text)){
-        $('#input_direct').css('border', '2px solid green');
-        alert('A entrada é válida e a saída é:\n'+saida); 
-      }else{
-        $('#input_direct').css('border', '2px solid red');
-        alert('A entrada não é válida e a saída é:\n'+saida); 
-      }
-      clear_saida();
+    var index_fila=0;
+
+    clear_fila();
+    if(turing(index, index_fila, nodeRoot, string_text)){
+      alert('A entrada é válida e o passo a passo da fila está abaixo.'); 
+      $('#input_direct').css('border', '2px solid green'); 
+    }else{
+      $('#input_direct').css('border', '2px solid red'); 
+      alert('A entrada não é válida'); 
     }
+  });
+
+  //Multiplas entradas
+  var id_multiple=1;
+  $('#add_input').click(function(event) {
+    $('<br><input type="text" class="local" id="multiple_'+id_multiple+'" /><button id="'+id_multiple+'" class="botao">Testar</button>').appendTo('#multiple_inputs');
+    id_multiple++;
+  });
+
+  $('#multiple_inputs').on('click', '.botao', function(event){
+    var nodeRoot = null;
+      for(var i=0; i<cy.elements().size(); i++){
+          if(cy.elements()[i].style('shape') == 'triangle'){
+            nodeRoot = cy.elements()[i];
+          }
+        }
+
+        if (nodeRoot != null){
+          // split na string que quero testar
+          var string_text = $('#multiple_'+this.id).val().split('');
+          var index=0;
+          var index_fila=0;
+
+          clear_fila();
+          if(turing(index, index_fila, nodeRoot, string_text)){
+            $('#multiple_'+this.id).css('border', '2px solid green');
+            alert('A entrada é válida e o passo a passo da fila está abaixo.'); 
+          }else{
+            $('#multiple_'+this.id).css('border', '2px solid red');
+            alert('A entrada não é válida'); 
+          }
+        }else{
+          alert('Estado inicial não definido');
+        }
   });
 
 </script>
