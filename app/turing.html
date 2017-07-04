@@ -292,52 +292,58 @@
     $('.fila').html('');
   }
 
-  var turing = function(index, index_fila, estado, string_text){
-    if(string_text.length == 0){
-        for(var i=0; i<cy.elements().size(); i++){
-        var edge = cy.elements()[i];
-        if(edge.isEdge()){
-          if(edge.data('read_step') == "λ"){
-              return true;
-          }
-        }
-      }
-    }
-    if(index == string_text.length){
-      if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
-        return true;
-      }else{ return false; }
+  var turing = function(index, estado, string_text){
+    if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
+      return true;
     }
 
     for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
       if(edge.isEdge()){
-        if(edge.source().id() == estado.id() && edge.data('read_step') == string_text[index]){
+        if(edge.source().id() == estado.id() && edge.data('read_step') == string_text[index] && edge.data('read_step').localeCompare('λ') != 0){
           // caminho com a fila
           if(edge.data('step_queue').localeCompare('L') == 0){
-            if(index_fila == 0) return false;
+            if(index == 0) {return false;}
             else{
-              fila.splice(index_fila, 1, edge.data('write_step'));
-              console.log(fila.join());
+              fila.splice(index, 1, edge.data('write_step'));
               $('.fila').append(fila.join()+'<br>');
-              index_fila--;
+              index--;
             }
           }else if(edge.data('step_queue').localeCompare('R') == 0){
-            fila.splice(index_fila, 1, edge.data('write_step'));
-            console.log(fila.join());
+            fila.splice(index, 1, edge.data('write_step'));
             $('.fila').append(fila.join()+'<br>');
-            index_fila++;
+            index++;
           }
 
-          index++;
-          if(turing(index, index_fila, edge.target(), string_text)){
-            return true;
-          }else{
-            index--;
+          if(turing(index, edge.target(), string_text)) return true;
+        }
+      }
+    }
+
+    if(index != 0){
+      for(var i=0; i<cy.elements().size(); i++){
+        var edge = cy.elements()[i];
+        if(edge.isEdge()){
+          if(edge.source().id() == estado.id() && edge.data('read_step').localeCompare('λ') == 0){
+            // caminho com a fila
+            if(edge.data('step_queue').localeCompare('L') == 0){
+                fila.splice(index, 1, edge.data('write_step'));
+                console.log(fila.join());
+                $('.fila').append(fila.join()+'<br>');
+                index--;
+            }else if(edge.data('step_queue').localeCompare('R') == 0){
+              fila.splice(index, 1, edge.data('write_step'));
+              console.log(fila.join());
+              $('.fila').append(fila.join()+'<br>');
+              index++;
+            }
+
+            if(turing(index, edge.target(), string_text)) return true;
           }
         }
       }
     }
+
     return false;
   }
   $('#string_direct').click(function(){
@@ -358,12 +364,11 @@
       }
     }
     // split na string que quero testar
-    var string_text = $('#input_direct').val().split('');
-    var index=0;
-    var index_fila=0;
-
     clear_fila();
-    if(turing(index, index_fila, nodeRoot, string_text)){
+    fila = $('#input_direct').val().split('');
+    var index=0;
+
+    if(turing(index, nodeRoot, fila)){
       alert('A entrada é válida e o passo a passo da fila está abaixo.'); 
       $('#input_direct').css('border', '2px solid green'); 
     }else{
@@ -389,12 +394,12 @@
 
         if (nodeRoot != null){
           // split na string que quero testar
-          var string_text = $('#multiple_'+this.id).val().split('');
-          var index=0;
-          var index_fila=0;
-
           clear_fila();
-          if(turing(index, index_fila, nodeRoot, string_text)){
+          
+          fila = $('#multiple_'+this.id).val().split('');
+          var index=0;
+
+          if(turing(index, nodeRoot, fila)){
             $('#multiple_'+this.id).css('border', '2px solid green');
             alert('A entrada é válida e o passo a passo da fila está abaixo.'); 
           }else{
