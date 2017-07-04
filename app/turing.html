@@ -325,20 +325,22 @@
         var edge = cy.elements()[i];
         if(edge.isEdge()){
           if(edge.source().id() == estado.id() && edge.data('read_step').localeCompare('λ') == 0){
-            // caminho com a fila
-            if(edge.data('step_queue').localeCompare('L') == 0){
+            if(string_text[index] == 'λ' || index == string_text.length){
+              // caminho com a fila
+              if(edge.data('step_queue').localeCompare('L') == 0){
+                  fila.splice(index, 1, edge.data('write_step'));
+                  console.log(fila.join());
+                  $('.fila').append(fila.join()+'<br>');
+                  index--;
+              }else if(edge.data('step_queue').localeCompare('R') == 0){
                 fila.splice(index, 1, edge.data('write_step'));
                 console.log(fila.join());
                 $('.fila').append(fila.join()+'<br>');
-                index--;
-            }else if(edge.data('step_queue').localeCompare('R') == 0){
-              fila.splice(index, 1, edge.data('write_step'));
-              console.log(fila.join());
-              $('.fila').append(fila.join()+'<br>');
-              index++;
-            }
+                index++;
+              }
 
-            if(turing(index, edge.target(), string_text)) return true;
+              if(turing(index, edge.target(), string_text)) return true;
+            }
           }
         }
       }
