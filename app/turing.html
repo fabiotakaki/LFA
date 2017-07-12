@@ -23,6 +23,8 @@
     <h2>Máquina de Turing</h2>
     <h3>Ferramentas</h3>
     <button id="help">Ajuda</button>
+    <button id="download">Download JFlap</button>
+    <input type="file" id="files" name="files[]" multiple />
     <form>
       <input type="radio" name="tool" value="node" checked> Estados<br>
       <input type="radio" name="tool" value="initial"> Estados Inicial<br>
@@ -137,19 +139,19 @@
       var label = '';
 
       var text = prompt('Digite o elemento a ser lido na fita', "");
-      if(text == "" || text == null || text.length > 1) text = "λ";
+      if(text == "" || text == null || text.length > 1) text = "□";
       addedEntities.data('read_step', text);
       label = text;
 
-      text = prompt('Digite o elemento a ser escrito na fita', "");
-      if(text == "" || text == null) text = "λ";
-      addedEntities.data('write_step', text);
-      label = label +';'+text;
+      text2 = prompt('Digite o elemento a ser escrito na fita', "");
+      if(text2 == "" || text2 == null) text2 = "□";
+      addedEntities.data('write_step', text2);
+      label = label +';'+text2;
 
-      text = prompt('Digite R ou L para direita ou esquerda respectivamente', "");
-      if(text == "" || text == null) text = "R";
-      addedEntities.data('step_queue', text);
-      label = label +';'+text;
+      text3 = prompt('Digite o caminho R ou L ou S para direita ou esquerda respectivamente', "");
+      if(text3.localeCompare("R") != 0 && text3.localeCompare("L") && text3.localeCompare("S") != 0) text3 = "R";
+      addedEntities.data('step_queue', text3);
+      label = label +';'+text3;
 
       addedEntities.data('label', label);
     },
@@ -256,15 +258,15 @@
       if(event.cyTarget != cy){ // verifico se clicou em um elemento
         if(event.cyTarget.isEdge()){ // verifico se é um node
           var text = prompt('Digite o novo elemento a ser lido na fita', "");
-          if(text == "" || text == null) text = "λ";
+          if(text == "" || text == null) text = "□";
           event.cyTarget.data('read_step', text);
 
           var text2 = prompt('Digite o novo elemento a ser escrito na fita', "");
-          if(text2 == "" || text2 == null) text2 = "λ";
+          if(text2 == "" || text2 == null) text2 = "□";
           event.cyTarget.data('write_step', text2);
 
-          var text3 = prompt('Digite o novo caminho R ou L para direita ou esquerda respectivamente', "");
-          if(text3 == "" || text3 == null) text3 = "R";
+          var text3 = prompt('Digite o novo caminho R ou L ou S para direita ou esquerda respectivamente', "");
+          if(text3.localeCompare("R") != 0 && text3.localeCompare("L") && text3.localeCompare("S") != 0) text = "R";
           event.cyTarget.data('step_queue', text3);
 
           event.cyTarget.data('label', text+';'+text2+';'+text3);
@@ -292,6 +294,18 @@
     $('.fila').html('');
   }
 
+  var printFila = function(index){
+     var html = '';
+     for(var i=0; i<fila.length; i++){
+        if(i == index){
+          html += '<b style="color:red;">'+fila[i].toString()+'</b>, ';
+        }
+        else html += fila[i].toString()+', ';
+     }
+     html += '<br>';
+     $('.fila').append(html);
+  }
+
   var turing = function(index, estado, string_text){
     if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
       return true;
@@ -300,19 +314,23 @@
     for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
       if(edge.isEdge()){
-        if(edge.source().id() == estado.id() && edge.data('read_step') == string_text[index] && edge.data('read_step').localeCompare('λ') != 0){
+        if(edge.source().id() == estado.id() && edge.data('read_step') == string_text[index] && edge.data('read_step').localeCompare('□') != 0){
           // caminho com a fila
           if(edge.data('step_queue').localeCompare('L') == 0){
             if(index == 0) {return false;}
             else{
               fila.splice(index, 1, edge.data('write_step'));
-              $('.fila').append(fila.join()+'<br>');
               index--;
+              printFila(index);
             }
           }else if(edge.data('step_queue').localeCompare('R') == 0){
             fila.splice(index, 1, edge.data('write_step'));
-            $('.fila').append(fila.join()+'<br>');
             index++;
+            printFila(index);
+          }else if(edge.data('step_queue').localeCompare('S') == 0){
+            fila.splice(index, 1, edge.data('write_step'));
+            $('.fila').append(fila.join()+'<br>');
+            printFila(index);
           }
 
           if(turing(index, edge.target(), string_text)) return true;
@@ -324,19 +342,20 @@
       for(var i=0; i<cy.elements().size(); i++){
         var edge = cy.elements()[i];
         if(edge.isEdge()){
-          if(edge.source().id() == estado.id() && edge.data('read_step').localeCompare('λ') == 0){
-            if(string_text[index] == 'λ' || index == string_text.length){
+          if(edge.source().id() == estado.id() && edge.data('read_step').localeCompare('□') == 0){
+            if(string_text[index] == '□' || index == string_text.length){
               // caminho com a fila
               if(edge.data('step_queue').localeCompare('L') == 0){
                   fila.splice(index, 1, edge.data('write_step'));
-                  console.log(fila.join());
-                  $('.fila').append(fila.join()+'<br>');
                   index--;
+                  printFila(index);
               }else if(edge.data('step_queue').localeCompare('R') == 0){
                 fila.splice(index, 1, edge.data('write_step'));
-                console.log(fila.join());
-                $('.fila').append(fila.join()+'<br>');
                 index++;
+                printFila(index);
+              }else if(edge.data('step_queue').localeCompare('S') == 0){
+                fila.splice(index, 1, edge.data('write_step'));
+                printFila(index);
               }
 
               if(turing(index, edge.target(), string_text)) return true;
@@ -412,6 +431,8 @@
           alert('Estado inicial não definido');
         }
   });
+
+
 
 </script>
 </body>
