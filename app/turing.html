@@ -23,7 +23,7 @@
     <h2>Máquina de Turing</h2>
     <h3>Ferramentas</h3>
     <button id="help">Ajuda</button>
-    <button id="download">Download JFlap</button>
+    <!-- <button id="download">Download JFlap</button> -->
     <input type="file" id="files" name="files[]" multiple />
     <form>
       <input type="radio" name="tool" value="node" checked> Estados<br>
@@ -55,6 +55,12 @@
 <script type="text/javascript" src="assets/js/jquery-3.1.1.min.js"></script>
 
 <script type="text/javascript">
+  //turing
+  var qtd_filas = parseInt(prompt('Quantidade de fitas:', ""));
+  if(!Number.isInteger(qtd_filas)) qtd_filas = 1;
+
+  console.log(qtd_filas);
+
   // -------------------------
   // AJUDA
   // -------------------------
@@ -138,22 +144,27 @@
     complete: function( sourceNode, targetNodes, addedEntities ) {
       var label = '';
 
-      var text = prompt('Digite o elemento a ser lido na fita', "");
-      if(text == "" || text == null || text.length > 1) text = "□";
-      addedEntities.data('read_step', text);
-      label = text;
+      for(var i=0; i<qtd_filas; i++){
+        var text = prompt('Digite o elemento a ser lido na fita '+i, "");
+        if(text == "" || text == null || text.length > 1) text = "□";
+        addedEntities.data('read_step'+i, text);
+        label += text;
 
-      text2 = prompt('Digite o elemento a ser escrito na fita', "");
-      if(text2 == "" || text2 == null) text2 = "□";
-      addedEntities.data('write_step', text2);
-      label = label +';'+text2;
+        text2 = prompt('Digite o elemento a ser escrito na fita '+i, "");
+        if(text2 == "" || text2 == null) text2 = "□";
+        addedEntities.data('write_step'+i, text2);
+        label += ';'+text2;
 
-      text3 = prompt('Digite o caminho R ou L ou S para direita ou esquerda respectivamente', "");
-      if(text3.localeCompare("R") != 0 && text3.localeCompare("L") && text3.localeCompare("S") != 0) text3 = "R";
-      addedEntities.data('step_queue', text3);
-      label = label +';'+text3;
+        text3 = prompt('Digite o caminho R ou L ou S para direita ou esquerda respectivamente', "");
+        if(text3.localeCompare("R") != 0 && text3.localeCompare("L") && text3.localeCompare("S") != 0) text3 = "R";
+        addedEntities.data('step_queue'+i, text3);
+        label += ';'+text3;
 
+        if(i != (qtd_filas-1)) label += ' | ';
+      }
       addedEntities.data('label', label);
+
+      console.log(addedEntities.data());
     },
     stop: function( sourceNode ) {
     }
@@ -287,26 +298,39 @@
   // TESTE DIRETO
   // -------------------------
 
-  //turing
   var fila = [];
+
   var clear_fila = function(){
     fila = [];
     $('.fila').html('');
   }
 
-  var printFila = function(index){
-     var html = '';
-     for(var i=0; i<fila.length; i++){
+  var printFila = function(j, index){
+    var html = '<b>Fila '+(j+1)+':</b> ';
+    for(var i=0; i<fila[j].length; i++){
         if(i == index){
-          html += '<b style="color:red;">'+fila[i].toString()+'</b>, ';
+          html += '<b style="color:red;">'+fila[j][i].toString()+'</b>, ';
         }
-        else html += fila[i].toString()+', ';
-     }
-     html += '<br>';
-     $('.fila').append(html);
+        else html += fila[j][i].toString()+', ';
+    }
+    html += '<br>';
+    $('.fila').append(html);
   }
 
-  var turing = function(index, estado, string_text){
+  var caminho_valido_sem_vazio = function(edge, index){
+    var aux = true;
+    for(var i=0; i<qtd_filas; i++){
+      if(fila[i][index[i]] === undefined) {
+        fila[i][index[i]] = '□';
+      }
+      if(edge.data('read_step'+i).localeCompare(fila[i][index[i]]) != 0){
+        aux = false;
+      }
+    }
+    return aux;
+  }
+
+  var turing = function(index, estado){
     if(estado.style('shape') == 'diamond' || estado.style('shape') == 'star'){
       return true;
     }
@@ -314,52 +338,32 @@
     for(var i=0; i<cy.elements().size(); i++){
       var edge = cy.elements()[i];
       if(edge.isEdge()){
-        if(edge.source().id() == estado.id() && edge.data('read_step') == string_text[index] && edge.data('read_step').localeCompare('□') != 0){
-          // caminho com a fila
-          if(edge.data('step_queue').localeCompare('L') == 0){
-            if(index == 0) {return false;}
-            else{
-              fila.splice(index, 1, edge.data('write_step'));
-              index--;
-              printFila(index);
-            }
-          }else if(edge.data('step_queue').localeCompare('R') == 0){
-            fila.splice(index, 1, edge.data('write_step'));
-            index++;
-            printFila(index);
-          }else if(edge.data('step_queue').localeCompare('S') == 0){
-            fila.splice(index, 1, edge.data('write_step'));
-            $('.fila').append(fila.join()+'<br>');
-            printFila(index);
-          }
-
-          if(turing(index, edge.target(), string_text)) return true;
-        }
-      }
-    }
-
-    if(index != 0){
-      for(var i=0; i<cy.elements().size(); i++){
-        var edge = cy.elements()[i];
-        if(edge.isEdge()){
-          if(edge.source().id() == estado.id() && edge.data('read_step').localeCompare('□') == 0){
-            if(string_text[index] == '□' || index == string_text.length){
-              // caminho com a fila
-              if(edge.data('step_queue').localeCompare('L') == 0){
-                  fila.splice(index, 1, edge.data('write_step'));
-                  index--;
-                  printFila(index);
-              }else if(edge.data('step_queue').localeCompare('R') == 0){
-                fila.splice(index, 1, edge.data('write_step'));
-                index++;
-                printFila(index);
-              }else if(edge.data('step_queue').localeCompare('S') == 0){
-                fila.splice(index, 1, edge.data('write_step'));
-                printFila(index);
+        if(edge.source().id() == estado.id()){
+          if(caminho_valido_sem_vazio(edge, index)){
+            // caminho com as filas
+            for(var j=0; j<qtd_filas; j++){
+              if(edge.data('step_queue'+j).localeCompare('L') == 0){
+                if(index[j] == 0) {
+                  fila[j].splice(index[j], 1, edge.data('write_step'+j));
+                  fila[j].splice(index[j], 0, '□');
+                  printFila(j, index[j]);
+                }
+                else{
+                  fila[j].splice(index[j], 1, edge.data('write_step'+j));
+                  index[j]--;
+                  printFila(j, index[j]);
+                }
+              }else if(edge.data('step_queue'+j).localeCompare('R') == 0){
+                fila[j].splice(index[j], 1, edge.data('write_step'+j));
+                index[j]++;
+                printFila(j, index[j]);
+              }else if(edge.data('step_queue'+j).localeCompare('S') == 0){
+                fila[j].splice(index[j], 1, edge.data('write_step'+j));
+                printFila(j, index[j]);
               }
-
-              if(turing(index, edge.target(), string_text)) return true;
             }
+
+            if(turing(index, edge.target())) return true;
           }
         }
       }
@@ -384,12 +388,21 @@
         element.style('background-color', '#666');
       }
     }
-    // split na string que quero testar
-    clear_fila();
-    fila = $('#input_direct').val().split('');
-    var index=0;
 
-    if(turing(index, nodeRoot, fila)){
+    clear_fila();
+
+    // adiciono as filas
+    for(var i=0; i<qtd_filas; i++){
+      fila.push([]);
+    }
+
+    fila[0] = $('#input_direct').val().split('');
+    var index=[];
+    for(var j=0; j<qtd_filas; j++){
+      index.push(0);
+    }
+
+    if(turing(index, nodeRoot)){
       alert('A entrada é válida e o passo a passo da fila está abaixo.'); 
       $('#input_direct').css('border', '2px solid green'); 
     }else{
@@ -416,9 +429,18 @@
         if (nodeRoot != null){
           // split na string que quero testar
           clear_fila();
+
+          // adiciono as filas
+          for(var i=0; i<qtd_filas; i++){
+            fila.push([]);
+          }
           
-          fila = $('#multiple_'+this.id).val().split('');
-          var index=0;
+          fila[0] = $('#multiple_'+this.id).val().split('');
+          
+          var index=[];
+          for(var j=0; j<qtd_filas; j++){
+            index.push(0);
+          }
 
           if(turing(index, nodeRoot, fila)){
             $('#multiple_'+this.id).css('border', '2px solid green');
@@ -433,6 +455,221 @@
   });
 
 
+  // -------------------------
+  // DOWNLOAD JFLAP
+  // -------------------------
+
+  // crio elemento A para download
+  function download(filename, text) {
+      var pom = document.createElement('a');
+      pom.setAttribute('href', 'data:text/plain;charset=utf-8,' + encodeURIComponent(text));
+      pom.setAttribute('download', filename);
+
+      if (document.createEvent) {
+          var event = document.createEvent('MouseEvents');
+          event.initEvent('click', true, true);
+          pom.dispatchEvent(event);
+      }
+      else {
+          pom.click();
+      }
+  }
+
+  $('#download').click(function(event) {
+    $.getJSON('structure.json', function(json, textStatus) {
+
+      var j = json;
+
+      for(var i=0; i<cy.elements().size(); i++){
+        if(cy.elements()[i].isNode()){
+          // estados e seus ids
+          j.structure.structure.structure.structure[0].state.push({"name": cy.elements()[i].id(),"id":cy.elements()[i].id().charAt(1)});
+          // estados iniciais
+          if(cy.elements()[i].style('shape') == 'triangle' || cy.elements()[i].style('shape') == 'star'){
+            j.structure.structure.structure.structure[1].state = {"name": cy.elements()[i].id(),"id": cy.elements()[i].id().charAt(1)};
+          }
+          // estados finais
+          if(cy.elements()[i].style('shape') == 'diamond' || cy.elements()[i].style('shape') == 'star'){
+            j.structure.structure.structure.structure[3].state.push({"name": cy.elements()[i].id(),"id": cy.elements()[i].id().charAt(1)});
+          }
+          // coordenadas dos elementos
+          j.structure.structure.state_point_map.state_point.push({"state": cy.elements()[i].id().charAt(1), "point": {"x": cy.elements()[i].position('x'), "y":cy.elements()[i].position('y')}});
+
+        }
+
+
+        if(cy.elements()[i].isEdge()){
+          // elementos das transições
+          j.structure.structure.structure.structure[2].symbol.push(cy.elements()[i].data('label'));
+          // transições
+          j.structure.structure.structure.structure[4].fsa_trans.push({
+            "input": cy.elements()[i].data('label'),
+            "from": {
+              "name": cy.elements()[i].source().id(),
+              "id": cy.elements()[i].source().id().charAt(1)
+            },
+            "to": {
+              "name": cy.elements()[i].target().id(),
+              "id": cy.elements()[i].target().id().charAt(1)
+            }
+          });
+          // pontos de controle das transições
+          j.structure.structure.control_point_map.control_point.push({
+            "from":cy.elements()[i].source().id().charAt(1),
+            "to":cy.elements()[i].target().id().charAt(1),
+            "point": {
+              "x": (parseFloat(cy.elements()[i].source().position('x'))+parseFloat(cy.elements()[i].target().position('x'))/2),
+              "y": parseFloat(cy.elements()[i].source().position('y'))
+            }
+          });
+        }
+      }
+
+      var str = JSON.stringify(j);
+      var x2js = new X2JS();
+      var xmlAsStr = x2js.json2xml_str( j );
+
+      download('EstruturaEmJFLAP.jflap', '<?xml version="1.0" encoding="UTF-8"?>'+xmlAsStr);
+    });
+  });
+
+  // -------------------------
+  // CARREGA JFLAP
+  // -------------------------
+
+  function readBlob() {
+    var files = document.getElementById('files').files;
+    if (!files.length) {
+      alert('Please select a file!');
+      return;
+    }
+
+    var file = files[0];
+    var start = 0;
+    var stop = file.size - 1;
+
+    var reader = new FileReader();
+
+    // termina leitura e chama a função :)
+    reader.onloadend = function(evt) {
+      if (evt.target.readyState == FileReader.DONE) { // DONE == 2
+
+        //limpo cytoscape
+        cy.elements().remove();
+
+        var string = evt.target.result;
+        var xml = $.parseXML(string), $xml = $( xml );
+        
+        var states = $xml.find('structure[type=state_set]>state>name');
+
+        // estados
+        q = states.length;
+        for(var i=0; i<states.length; i++){
+          var x = $xml.find('state_point_map>state_point>point>x');
+          var y = $xml.find('state_point_map>state_point>point>y');
+          cy.add({
+            group: "nodes",
+            data: { id: states[i].innerHTML },
+            position: { 
+              x: parseFloat(x[i].innerHTML),
+              y: parseFloat(y[i].innerHTML)
+            },
+          });
+        }
+
+        // transições
+        var transitions = $xml.find('structure[type=transition_set]>transition');
+
+        for(var i=0; i<transitions.length; i++){
+          var from = $xml.find('structure[type=transition_set]>transition>from>name');
+          var to = $xml.find('structure[type=transition_set]>transition>to>name');
+          var tapes = $xml.find('structure[type=transition_set]>transition>tapes')[i].innerHTML;
+          var temp_label = '';
+
+          qtd_filas = parseInt(tapes);
+
+          for(var j=0; j<parseInt(tapes); j++){
+            var read_step = $xml.find('structure[type=transition_set]>transition>read'+j)[i];
+            var write_step = $xml.find('structure[type=transition_set]>transition>write'+j)[i];
+            var step_queue = $xml.find('structure[type=transition_set]>transition>move'+j)[i];
+
+            if(read_step.textContent == 'â¡'){
+              temp_label += '□;';
+            }else{
+              temp_label += read_step.textContent+';';
+            }
+
+            if(write_step.textContent == 'â¡'){
+              temp_label += '□;';
+            }else{
+              temp_label += write_step.textContent+';';
+            }
+
+            if(step_queue.textContent == 'â¡'){
+              temp_label += '□;';
+            }else{
+              temp_label += step_queue.textContent+';';
+            }
+
+            if(j != (parseInt(tapes)-1)) temp_label += ' | ';
+          }
+
+          cy.add([
+            { 
+              group: "edges", data: {id: from[i].innerHTML+to[i].innerHTML+i, source: from[i].innerHTML, target: to[i].innerHTML, label: temp_label } 
+            }
+          ]);
+
+          for(var j=0; j<parseInt(tapes); j++){
+            var read_step = $xml.find('structure[type=transition_set]>transition>read'+j)[i];
+            var write_step = $xml.find('structure[type=transition_set]>transition>write'+j)[i];
+            var step_queue = $xml.find('structure[type=transition_set]>transition>move'+j)[i];
+
+            var temp_read_step = '';
+            var temp_write_step = '';
+            var temp_step_queue = '';
+
+            if(read_step.textContent == 'â¡'){
+              temp_read_step = '□';
+            }else{
+              temp_read_step = read_step.textContent;
+            }
+
+            if(write_step.textContent == 'â¡'){
+              temp_write_step = '□';
+            }else{
+              temp_write_step = write_step.textContent;
+            }
+
+            if(step_queue.textContent == 'â¡'){
+              temp_step_queue = '□';
+            }else{
+              temp_step_queue = step_queue.textContent;
+            }
+
+            cy.$('#'+from[i].innerHTML+to[i].innerHTML+i).data('read_step'+j, temp_read_step);
+            cy.$('#'+from[i].innerHTML+to[i].innerHTML+i).data('write_step'+j, temp_write_step);
+            cy.$('#'+from[i].innerHTML+to[i].innerHTML+i).data('step_queue'+j, temp_step_queue);
+
+          }
+        }
+
+        // elemento incial
+        var start_state = $xml.find('structure[type=start_state]>state>name');
+        cy.$('#'+start_state[0].innerHTML).style({shape:'triangle'});
+        //elementos finais
+        var final_states = $xml.find('structure[type=final_states]>state>name');
+        for(var i=0; i<final_states.length; i++){
+          cy.$('#'+final_states[i].innerHTML).style({shape:'diamond'});
+        }
+      }
+    }
+
+    var blob = file.slice(start, stop + 1);
+    reader.readAsBinaryString(blob);
+  }
+
+  document.getElementById('files').addEventListener('change', readBlob, false);
 
 </script>
 </body>
