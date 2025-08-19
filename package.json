@@ -4,14 +4,15 @@
   "description": "Web Projects Kickstarter",
   "main": "index.html",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "dev": "concurrently \"vite\" \"sass --watch app/assets/scss:app/assets/css\"",
+    "build": "sass app/assets/scss:app/assets/css",
+    "test": "echo \"No tests specified\""
   },
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "browser-sync": "^2.17.5",
-    "gulp": "^3.9.1",
-    "gulp-sass": "^2.3.2",
-    "run-sequence": "^1.2.2"
+    "concurrently": "^8.0.1",
+    "sass": "^1.69.5",
+    "vite": "^4.4.9"
   }
 }
